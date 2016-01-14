@@ -1,0 +1,21 @@
+<?xml version="1.0" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    
+    <xs:element name="message" type="messageMsg"/>
+    
+    <xs:complexType name="messageMsg">
+        <xs:sequence>
+            <xs:element name="dateTimeCreated" type="xs:dateTime"/>
+            <xs:element name="severity" type="xs:string"/>
+            <xs:element name="source" type="xs:string"/>
+            <xs:element name="details" type="xs:string"/>
+            <xs:element name="topics" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="topic" type="xs:string" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
