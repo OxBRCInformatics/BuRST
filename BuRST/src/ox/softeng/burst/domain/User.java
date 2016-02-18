@@ -10,7 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="Users")
+@Table(name="Users", schema="Subscription")
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -30,6 +30,11 @@ public class User implements Serializable {
     	this.firstName = firstName;
     	this.lastName = lastName;
     	this.emailAddress = emailAddress;
+    }
+    
+    public User()
+    {
+    	
     }
     
 	

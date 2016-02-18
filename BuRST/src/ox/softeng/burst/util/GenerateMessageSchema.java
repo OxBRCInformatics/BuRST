@@ -9,7 +9,7 @@ import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.transform.Result;
 import javax.xml.transform.stream.StreamResult;
 
-import ox.softeng.burst.services.MessageMsg;
+import ox.softeng.burst.services.MessageDTO;
 
 public class GenerateMessageSchema 
 {
@@ -17,7 +17,7 @@ public class GenerateMessageSchema
 	{
 		GenerateMessageSchema gms = new GenerateMessageSchema();
 		
-		JAXBContext jaxbContext = JAXBContext.newInstance(MessageMsg.class);
+		JAXBContext jaxbContext = JAXBContext.newInstance(MessageDTO.class);
 		MySchemaOutputResolver sor = gms.new MySchemaOutputResolver();
 		jaxbContext.generateSchema(sor);
 		

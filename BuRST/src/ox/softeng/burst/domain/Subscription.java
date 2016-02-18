@@ -13,8 +13,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 @Entity
+@Table(schema="Subscription")
 public class Subscription implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
@@ -32,8 +34,8 @@ public class Subscription implements Serializable{
 	@ManyToMany
 	protected List<Topic> topics;
 	
-	@ManyToMany
-	protected List<Severity> severities;
+	@Enumerated(EnumType.STRING)
+	protected Severity severity;
 
 	protected LocalDateTime nextScheduledRun;
 	
@@ -41,8 +43,7 @@ public class Subscription implements Serializable{
 	{
 		this.subscriber = subscriber;
 		this.frequency = frequency;
-		severities = new ArrayList<Severity>();
-		severities.add(severity);
+		this.severity = severity;
 		
 		topics = new ArrayList<Topic>();
 		topics.add(topic);
@@ -64,6 +65,11 @@ public class Subscription implements Serializable{
 				break;
 			
 		}
+	}
+	
+	public Subscription()
+	{
+		
 	}
 	
 }

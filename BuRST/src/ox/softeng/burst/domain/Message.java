@@ -12,9 +12,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 @Entity
+@Table(schema="Report")
 public class Message implements Serializable{
 
 
@@ -25,9 +27,8 @@ public class Message implements Serializable{
     protected Long id = null;
 
 	protected LocalDateTime dateTimeCreated;
-	protected LocalDateTime dateTimeSent;
+	protected LocalDateTime dateTimeReceived;
 	
-	@ManyToOne
 	protected Severity severity;
 	
 	protected String source;
@@ -36,21 +37,31 @@ public class Message implements Serializable{
 	
 	@ManyToMany(fetch=FetchType.EAGER, cascade = CascadeType.ALL)
 	protected List<Topic> topics;
+	
+	@OneToMany(fetch=FetchType.EAGER, cascade = CascadeType.ALL, mappedBy="message")
+	protected List<Metadata> metadata;
 
 	public Message(){}
 	
-	public Message(String source, String message, Severity severity, LocalDateTime dateTimeSent)
+	public Message(String source, String message, Severity severity, LocalDateTime dateTimeCreated)
 	{
-		dateTimeCreated = LocalDateTime.now();
+		dateTimeReceived = LocalDateTime.now();
 		this.source = source;
 		this.message = message;
 		this.severity = severity;
-		this.dateTimeSent = dateTimeSent;
+		this.dateTimeCreated = dateTimeCreated;
 		topics = new ArrayList<Topic>();
+		metadata = new ArrayList<Metadata>();
 	}
+
 	public void addTopic(Topic topic)
 	{
 		topics.add(topic);
+	}
+	
+	public void addMetadata(String key, String value)
+	{
+		metadata.add(new Metadata(key, value, this));
 	}
 
 	
@@ -97,5 +108,14 @@ public class Message implements Serializable{
 	
 	public Long getId() {
 		return id;
+	}
+	
+
+	public List<Metadata> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(List<Metadata> metadata) {
+		this.metadata = metadata;
 	}
 }

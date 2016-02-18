@@ -1,10 +1,9 @@
 <message>
-    <dateTimeSent>2006-05-04T18:13:51.0</dateTimeSent>
-    <severity>Error</severity>
-    <source>System 2</source>
-    <details>There is a problem here</details>
-    <topics>
-       <topic>topic 1</topic>
-       <topic>topic 2</topic>
-    </topics>
+	<dateTimeSent>2006-05-04T18:13:51.0</dateTimeSent>
+	<severity>ERROR</severity>
+	<source>System 2</source>
+	<details>There is a problem here</details>
+	<topic>topic 1</topic>
+	<topic>topic 2</topic>
 </message>
+	

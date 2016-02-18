@@ -2,10 +2,9 @@ package ox.softeng.burst.services;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Entity;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -16,17 +15,17 @@ import ox.softeng.burst.domain.Severity;
 import ox.softeng.burst.domain.Topic;
 
 @XmlRootElement(name="message")
-public class MessageMsg implements Serializable{
+public class MessageDTO implements Serializable{
 
 
 	private static final long serialVersionUID = 1L;
 
 	@XmlElement(required=true)
 	@XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-	public LocalDateTime dateTimeSent;
+	public LocalDateTime dateTimeCreated;
 	
 	@XmlElement(required=true)
-	public String severity;
+	public Severity severity;
 	
 	@XmlElement(required=true)
 	public String source;
@@ -35,20 +34,32 @@ public class MessageMsg implements Serializable{
 	public String details;
 	
 	@XmlElement( name="topic",required=true)
-	@XmlElementWrapper(name="topics")
+	//@XmlElementWrapper(name="topics")
 	public List<String> topics;
 
-	public MessageMsg(){
-		
+	@XmlElement( name="metadata",required=false)
+	//@XmlElementWrapper(name="metadata")
+	public List<Metadata> metadata;
+
+	public MessageDTO(){
+		topics = new ArrayList<String>();
+		metadata = new ArrayList<Metadata>();
 	}
 	
 	
 	public Message generateMessage()
 	{
-		Message msg = new Message(this.source, this.details, new Severity(this.severity), dateTimeSent);
+		Message msg = new Message(this.source, this.details, this.severity, dateTimeCreated);
 		for(String topic : topics)
 		{
 			msg.addTopic(new Topic(topic));
+		}
+		if(metadata != null)
+		{
+			for(Metadata md : metadata)
+			{
+				msg.addMetadata(md.key, md.value);
+			}
 		}
 		return msg;
 	}
@@ -58,5 +69,32 @@ public class MessageMsg implements Serializable{
 		return "Message Object: "+ details;
 	}
 
+	
+	public static class Metadata
+	{
+		protected String key;
+		protected String value;
+		public Metadata()
+		{
+			
+		}
+		public String getKey() {
+			return key;
+		}
+		public void setKey(String key) {
+			this.key = key;
+		}
+		public String getValue() {
+			return value;
+		}
+		public void setValue(String value) {
+			this.value = value;
+		}
+	}
+
+
+	public List<Metadata> getMetadata() {
+		return metadata;
+	}
 	
 }
