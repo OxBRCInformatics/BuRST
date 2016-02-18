@@ -1,24 +1,16 @@
 package ox.softeng.burst.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Entity
 public class Metadata {
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	protected Long id = null;
-
+	protected String key;
 	@ManyToOne(fetch= FetchType.LAZY)
 	@JoinColumn(name="message")
 	protected Message message;
-
-	protected String key;
 	protected String value;
 
 
@@ -38,18 +30,23 @@ public class Metadata {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	public Message getMessage() {
-		return message;
-	}
-	public void setMessage(Message message) {
-		this.message = message;
-	}
+
 	public String getKey() {
 		return key;
 	}
+
 	public void setKey(String key) {
 		this.key = key;
 	}
+
+	public Message getMessage() {
+		return message;
+	}
+
+	public void setMessage(Message message) {
+		this.message = message;
+	}
+
 	public String getValue() {
 		return value;
 	}

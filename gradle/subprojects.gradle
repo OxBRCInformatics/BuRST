@@ -1,0 +1,169 @@
+subprojects {
+
+    /**
+     * Define the jar/war manifest
+     */
+    def manifestAttrs = [
+            "Created-By"            : "${JavaVersion.current().toString()} JVM, ${gradle.gradleVersion} Gradle",
+            "Specification-Title"   : "$rootProject.name $project.name Classes",
+            "Specification-Version" : version,
+            "Implementation-Title"  : "${project.group.toLowerCase()}.${project.name.toLowerCase()}",
+            "Implementation-Version": "${version}",
+            "Implementation-Vendor" : "Oxford University",
+    ]
+
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+    apply plugin: 'maven'
+    apply plugin: 'com.jfrog.bintray'
+
+    jacoco {
+        toolVersion = '+'
+    }
+
+    apply from: "$rootDir/dependencies.gradle"
+    apply from: "dependencies.gradle"
+
+    // Stop the test configurations from using log4j as they use logback
+    configurations.testRuntime {
+        exclude module: 'slf4j-log4j12'
+        exclude module: 'log4j'
+    }
+
+    /**
+     * Setup the Unit testing
+     * Any projects with code plugins will also have test cases, these are all unit tests ONLY
+     */
+    test {
+        group 'testing'
+        useJUnit()
+        ignoreFailures = true
+        systemProperties(['file.encoding': 'UTF-8'])
+        workingDir = rootDir
+        maxParallelForks = 20
+        afterSuite {td, tr ->
+            if (!(td.parent)) {
+                rootProject.unitTestFailures = rootProject.unitTestFailures + tr.failedTestCount
+            }
+        }
+        rootProject.tasks.unitTest.dependsOn it
+        rootProject.tasks.unitTest.reportOn it
+    }
+
+    /**
+     * Setup the default output for the jacoco test report to be html.
+     */
+    jacocoTestReport {
+        group 'verification'
+        reports {
+            xml.enabled false
+            csv.enabled false
+            html.destination "$rootProject.reporting.baseDir/jacoco/${project.name}"
+        }
+        tasks.check.dependsOn it
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        group 'build'
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    tasks.javadoc.failOnError false
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        group 'build'
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    def extContent = copySpec {
+        from(configurations.runtime) {
+            include '**/*.jar'
+            exclude '**/*-sources.jar'
+        }
+        into 'exts'
+    }
+
+    task deploy(type: Copy) {
+        dependsOn jar
+        into "${rootProject.deployDir}/${project.name}"
+        from jar.archivePath
+        doFirst {
+            destinationDir.mkdirs()
+        }
+        with extContent
+    }
+
+    clean {
+        delete 'logs'
+    }
+
+
+    /**
+     * Add jars as artifacts, this will cause them to be built as part of assemble and will automatically be
+     * included as part of the publishing mechanism.
+     * For some reason, some change made has meant that any tars included stop the automatic addition of the standard
+     * jar file, therefore we define it as required.
+     */
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+/*
+    bintray {
+        user = System.getenv('BINTRAY_USER')
+        key = System.getenv('BINTRAY_KEY')
+        pkg {
+            repo = 'maven'
+            name = project.name
+            userOrg = 'olliefreeman'
+            licenses = ['Apache-2.0']
+            websiteUrl = 'https://github.com/olliefreeman/grails-utils'
+            vcsUrl = 'https://github.com/olliefreeman/grails-utils.git'
+            githubRepo = 'olliefreeman/grails-utils'
+            githubReleaseNotesFile = 'README.md'
+            version {
+                name = project.version
+                desc = "Grails Utils - ${project.name} ${project.version}"
+                released = new Date()
+                vcsTag = "${project.version}"
+            }
+        }
+        configurations = ['archives']
+        dryRun = false //Whether to run this as dry-run, without deploying
+        publish = false //If version should be auto published after an upload
+    }
+*/
+    afterEvaluate {
+
+        /*
+         * Set up compile tasks to use default encoding and other compile options.
+         */
+        tasks.withType(JavaCompile) {JavaCompile compile ->
+            compile.options.encoding = 'UTF-8'
+            //compile.options.incremental = useIncrementalJavaBuilding.toBoolean()
+            compile.options.compilerArgs.add('-Xlint:unchecked')
+            compile.options.compilerArgs.add('-Xlint:deprecation')
+        }
+
+        tasks.withType(GroovyCompile) {GroovyCompile compile ->
+            compile.groovyOptions.encoding = 'UTF-8'
+            compile.options.encoding = 'UTF-8'
+            compile.groovyOptions.keepStubs = true
+            compile.groovyOptions.stubDir = file("$buildDir/stubs")
+            compile.groovyOptions.optimizationOptions.put('all', true)
+        }
+        tasks.withType(Jar) {
+            jar {
+                manifest {
+                    attributes(manifestAttrs)
+                }
+                sourceCompatibility = project.sourceCompatibility
+            }
+        }
+
+
+    }
+
+}

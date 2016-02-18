@@ -1,0 +1,42 @@
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
+
+    logger.quiet "Project: $name > group: $group, version: $version"
+
+    idea {
+        module {
+            excludeDirs += file('.idea')
+            excludeDirs += file('deploy')
+            excludeDirs += file('.shelf')
+            excludeDirs += file('classes')
+            excludeDirs += file('.classpath')
+            excludeDirs += file('.project')
+            excludeDirs += file('.settings')
+
+            downloadJavadoc = true
+            downloadSources = true
+
+            iml.withXml {provider ->
+                /**
+                 * Add gradle setup to the module
+                 */
+                provider.node.@'external.linked.project.path' = '$MODULE_DIR$'
+                provider.node.@'external.root.project.path' = '$MODULE_DIR$'
+                provider.node.@'external.system.id' = 'GRADLE'
+                provider.node.@'external.system.module.group' = ''
+                provider.node.@'external.system.module.version' = version
+            }
+        }
+    }
+
+    repositories {
+      mavenLocal()
+      jcenter()
+    }
+
+    configurations.all {
+        // check for updates every build
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+      }
+}

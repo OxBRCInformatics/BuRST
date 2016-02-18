@@ -1,4 +1,4 @@
-package ox.softeng.burst;
+package ox.softeng.burst.util.test;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
