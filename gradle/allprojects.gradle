@@ -14,6 +14,9 @@ allprojects {
             excludeDirs += file('.project')
             excludeDirs += file('.settings')
 
+            sourceDirs += file('rabbit-consumers')
+            sourceDirs += file('rabbit-converters')
+
             downloadJavadoc = true
             downloadSources = true
 

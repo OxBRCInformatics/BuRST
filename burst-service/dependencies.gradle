@@ -1,15 +1,8 @@
 dependencies {
-    compile group: 'org.glassfish.jersey.media', name: 'jersey-media-json-jackson', version:'2.21'
 
-    compile group: 'org.postgresql', name: 'postgresql', version: postgresJdbcVersion
-    compile group: 'org.json', name: 'json', version:'20150729'
-    compile group: 'org.hibernate', name: 'hibernate-core', version:hibernateVersion
-    compile group: 'org.hibernate', name: 'hibernate-validator', version:hibernateValidatorVersion
-    compile group: 'org.hibernate.common', name: 'hibernate-commons-annotations', version:hibernateCommonsVersion
-    compile group: 'org.hibernate.javax.persistence', name: 'hibernate-jpa-2.0-api', version:'1.0.1.Final'
     compile group: 'org.hibernate', name: 'hibernate-entitymanager', version:hibernateVersion
-    compile group: 'org.hibernate', name: 'hibernate-java8', version:hibernateVersion
-    compile group: 'javax.transaction', name: 'jta', version:'1.1'
-    compile group: 'javax.el', name: 'javax.el-api', version:'2.2.4'
+
     compile group: 'com.rabbitmq', name: 'amqp-client', version:rabbitmqVersion
+
+    runtime group: 'org.postgresql', name: 'postgresql', version: postgresJdbcVersion
 }
