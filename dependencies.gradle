@@ -4,6 +4,12 @@
 dependencies {
 
     /**
+     * Core dependencies
+     */
+    compile group: 'org.codehaus.groovy', name: 'groovy', version: groovyVersion
+    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: groovyVersion
+
+    /**
      * Logging
      */
     // Use slf4j logging API and force all log4j over slf4j
@@ -23,11 +29,14 @@ dependencies {
 }
 
 configurations.all {
+    // check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+
     resolutionStrategy.eachDependency {DependencyResolveDetails details ->
         if (details.requested.group == 'org.postgresql' && details.requested.name == 'postgresql'
                 && details.requested.version == '9.4.1207.jre7') {
             //prefer different version which contains some necessary fixes
-            details.useVersion '9.4.1207'
+            details.useVersion project.postgresJdbcVersion
         }
     }
 }
