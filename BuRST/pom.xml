@@ -2,10 +2,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>BuRST</groupId>
 	<artifactId>BuRST</artifactId>
-	<version>0.0.16-SNAPSHOT</version>
+	<version>0.0.16</version>
 	<scm>
 		<developerConnection>scm:git:https://jamesrwelch@github.com/jamesrwelch/BuRST.git</developerConnection>
-		<tag>BuRST-0.0.1</tag>
+		<tag>BuRST-0.0.16</tag>
 	</scm>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
