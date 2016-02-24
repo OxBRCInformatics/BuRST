@@ -5,7 +5,7 @@
 	<artifactId>BuRST</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<scm>
-		<developerConnection>scm:git:git://github.com/jamesrwelch/BuRST.git</developerConnection>
+		<developerConnection>scm:git:git://git@github.com/jamesrwelch/BuRST.git</developerConnection>
 		<tag>BuRST-0.0.1</tag>
 	</scm>
 	<build>
