@@ -78,6 +78,13 @@ public class MessageDTO implements Serializable{
 		{
 			
 		}
+		public Metadata(String key, String value)
+		{
+			this.key = key;
+			this.value = value;
+		}
+		
+		
 		public String getKey() {
 			return key;
 		}
@@ -156,9 +163,14 @@ public class MessageDTO implements Serializable{
 	{
 		topics.add(topic);
 	}
+	
 	public void addMetadata(Metadata md)
 	{
 		metadata.add(md);
+	}
+	public void addMetadata(String key, String value)
+	{
+		metadata.add(new Metadata(key, value));
 	}
 	
 }
