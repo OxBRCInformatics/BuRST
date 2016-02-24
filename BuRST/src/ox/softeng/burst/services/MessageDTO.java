@@ -96,5 +96,69 @@ public class MessageDTO implements Serializable{
 	public List<Metadata> getMetadata() {
 		return metadata;
 	}
+
+
+	public LocalDateTime getDateTimeCreated() {
+		return dateTimeCreated;
+	}
+
+
+	public void setDateTimeCreated(LocalDateTime dateTimeCreated) {
+		this.dateTimeCreated = dateTimeCreated;
+	}
+
+
+	public Severity getSeverity() {
+		return severity;
+	}
+
+
+	public void setSeverity(Severity severity) {
+		this.severity = severity;
+	}
+
+
+	public String getSource() {
+		return source;
+	}
+
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+
+	public String getDetails() {
+		return details;
+	}
+
+
+	public void setDetails(String details) {
+		this.details = details;
+	}
+
+
+	public List<String> getTopics() {
+		return topics;
+	}
+
+
+	public void setTopics(List<String> topics) {
+		this.topics = topics;
+	}
+
+
+	public void setMetadata(List<Metadata> metadata) {
+		this.metadata = metadata;
+	}
+	
+	public void addTopic(String topic)
+	{
+		topics.add(topic);
+	}
+	public void addMetadata(Metadata md)
+	{
+		metadata.add(md);
+	}
 	
 }
