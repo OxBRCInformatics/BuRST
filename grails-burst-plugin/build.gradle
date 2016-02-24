@@ -33,6 +33,9 @@ dependencies {
     provided "org.grails:grails-plugin-services"
     provided "org.grails:grails-plugin-domain-class"
 
+    provided "org.grails.plugins:hibernate4:$gormVersion"
+    provided "org.hibernate:hibernate-ehcache"
+
     provided 'javax.servlet:javax.servlet-api:3.1.0'
 }
 

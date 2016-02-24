@@ -21,8 +21,6 @@ dependencies {
     testCompile "org.grails.plugins:geb"
     testRuntime "org.seleniumhq.selenium:selenium-htmlunit-driver:2.47.1"
     testRuntime "net.sourceforge.htmlunit:htmlunit:2.18"
-    testRuntime "org.grails.plugins:hibernate4:$gormVersion"
-    testRuntime "org.hibernate:hibernate-ehcache"
 
 }
 
