@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -15,6 +17,7 @@ import ox.softeng.burst.domain.Severity;
 import ox.softeng.burst.domain.Topic;
 
 @XmlRootElement(name="message")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class MessageDTO implements Serializable{
 
 
@@ -22,24 +25,24 @@ public class MessageDTO implements Serializable{
 
 	@XmlElement(required=true)
 	@XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-	public LocalDateTime dateTimeCreated;
+	private LocalDateTime dateTimeCreated;
 	
 	@XmlElement(required=true)
-	public Severity severity;
+	private Severity severity;
 	
 	@XmlElement(required=true)
-	public String source;
+	private String source;
 	
 	@XmlElement(required=true)
-	public String details;
+	private String details;
 	
 	@XmlElement( name="topic",required=true)
 	//@XmlElementWrapper(name="topics")
-	public List<String> topics;
+	private List<String> topics;
 
 	@XmlElement( name="metadata",required=false)
 	//@XmlElementWrapper(name="metadata")
-	public List<Metadata> metadata;
+	private List<Metadata> metadata;
 
 	public MessageDTO(){
 		topics = new ArrayList<String>();
@@ -98,7 +101,6 @@ public class MessageDTO implements Serializable{
 			this.value = value;
 		}
 	}
-
 
 	public List<Metadata> getMetadata() {
 		return metadata;

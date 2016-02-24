@@ -15,7 +15,7 @@ import javax.xml.bind.JAXB;
 
 public class RabbitService implements Runnable {
 
-	private final static String QUEUE_NAME = "BuRST";
+	private final static String QUEUE_NAME = "burst";
 
 	Connection connection;
 	Channel channel;
@@ -24,12 +24,12 @@ public class RabbitService implements Runnable {
 	public RabbitService()
 	{
 		ConnectionFactory factory = new ConnectionFactory();
-		factory.setHost("localhost");
+		factory.setHost("192.168.99.100");
 		try {
 			connection = factory.newConnection();
 			channel = connection.createChannel();
-			channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-
+			channel.exchangeDeclare("Carfax", "topic", true);
+			
 			entityManagerFactory = Persistence.createEntityManagerFactory( "ox.softeng.burst" );
 
 			//entityManager.getTransaction().begin();

@@ -35,7 +35,7 @@ public class TestInstall {
 		}
 		Message m = new Message("Source System","Message Details...", Severity.ERROR, LocalDateTime.now());
 		m.addTopic(new Topic("topic 3"));
-		entityManager.persist(m);
+		entityManager.merge(m);
 		entityManager.getTransaction().commit();
 		entityManager.close();
 	}	
