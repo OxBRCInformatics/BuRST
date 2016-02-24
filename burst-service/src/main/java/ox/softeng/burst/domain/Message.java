@@ -1,121 +1,101 @@
 package ox.softeng.burst.domain;
 
+import javax.persistence.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-
 @Entity
-@Table(schema="Report")
-public class Message implements Serializable{
+@Table(schema = "Report")
+public class Message implements Serializable {
 
 
-	private static final long serialVersionUID = 1L;
-
+    private static final long serialVersionUID = 1L;
+    protected OffsetDateTime dateTimeCreated;
+    protected OffsetDateTime dateTimeReceived;
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     protected Long id = null;
+    protected String message;
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "message")
+    protected List<Metadata> metadata;
+    protected Severity severity;
+    protected String source;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    protected List<Topic> topics;
 
-	protected LocalDateTime dateTimeCreated;
-	protected LocalDateTime dateTimeReceived;
-	
-	protected Severity severity;
-	
-	protected String source;
-	
-	protected String message;
-	
-	@ManyToMany(fetch=FetchType.EAGER, cascade = CascadeType.ALL)
-	protected List<Topic> topics;
-	
-	@OneToMany(fetch=FetchType.EAGER, cascade = CascadeType.ALL, mappedBy="message")
-	protected List<Metadata> metadata;
+    public Message() {
+    }
 
-	public Message(){}
-	
-	public Message(String source, String message, Severity severity, LocalDateTime dateTimeCreated)
-	{
-		dateTimeReceived = LocalDateTime.now();
-		this.source = source;
-		this.message = message;
-		this.severity = severity;
-		this.dateTimeCreated = dateTimeCreated;
-		topics = new ArrayList<Topic>();
-		metadata = new ArrayList<Metadata>();
-	}
+    public Message(String source, String message, Severity severity, OffsetDateTime dateTimeCreated) {
+        dateTimeReceived = OffsetDateTime.now(ZoneId.of("UTC"));
+        this.source = source;
+        this.message = message;
+        this.severity = severity;
+        this.dateTimeCreated = dateTimeCreated;
+        topics = new ArrayList<>();
+        metadata = new ArrayList<>();
+    }
 
-	public void addTopic(Topic topic)
-	{
-		topics.add(topic);
-	}
-	
-	public void addMetadata(String key, String value)
-	{
-		metadata.add(new Metadata(key, value, this));
-	}
+    public void addMetadata(String key, String value) {
+        metadata.add(new Metadata(key, value, this));
+    }
 
-	
-	public LocalDateTime getDateTimeCreated() {
-		return dateTimeCreated;
-	}
-	
-	public void setDateTimeCreated(LocalDateTime dateCreated) {
-		this.dateTimeCreated = dateCreated;
-	}
-	
-	
-	public Severity getSeverity() {
-		return severity;
-	}
-	
-	public void setSeverity(Severity severity) {
-		this.severity = severity;
-	}
-	
-	public String getSource() {
-		return source;
-	}
-	
-	public void setSource(String source) {
-		this.source = source;
-	}
-	
-	public String getMessage() {
-		return message;
-	}
-	
-	public void setMessage(String message) {
-		this.message = message;
-	}
-	
-	public List<Topic> getTopics() {
-		return topics;
-	}
-	
-	public void setTopics(List<Topic> topics) {
-		this.topics = topics;
-	}
-	
-	public Long getId() {
-		return id;
-	}
-	
+    public void addTopic(Topic topic) {
+        topics.add(topic);
+    }
 
-	public List<Metadata> getMetadata() {
-		return metadata;
-	}
+    public OffsetDateTime getDateTimeCreated() {
+        return dateTimeCreated;
+    }
 
-	public void setMetadata(List<Metadata> metadata) {
-		this.metadata = metadata;
-	}
+    public void setDateTimeCreated(OffsetDateTime dateCreated) {
+        this.dateTimeCreated = dateCreated;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public List<Metadata> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(List<Metadata> metadata) {
+        this.metadata = metadata;
+    }
+
+    public Severity getSeverity() {
+        return severity;
+    }
+
+    public void setSeverity(Severity severity) {
+        this.severity = severity;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public List<Topic> getTopics() {
+        return topics;
+    }
+
+    public void setTopics(List<Topic> topics) {
+        this.topics = topics;
+    }
 }

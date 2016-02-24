@@ -1,20 +1,20 @@
 package ox.softeng.burst.util.test;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-
 import ox.softeng.burst.domain.Message;
 import ox.softeng.burst.domain.Severity;
 import ox.softeng.burst.domain.Topic;
 import ox.softeng.burst.domain.User;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.List;
 
 public class TestInstall {
 
@@ -33,7 +33,7 @@ public class TestInstall {
 		{
 			entityManager.persist(new Topic(t));
 		}
-		Message m = new Message("Source System","Message Details...", Severity.ERROR, LocalDateTime.now());
+		Message m = new Message("Source System", "Message Details...", Severity.ERROR, OffsetDateTime.now(ZoneId.of("UTC")));
 		m.addTopic(new Topic("topic 3"));
 		entityManager.persist(m);
 		entityManager.getTransaction().commit();
