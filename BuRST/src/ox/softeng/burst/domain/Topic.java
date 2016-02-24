@@ -2,8 +2,10 @@ package ox.softeng.burst.domain;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
+@Table(schema="Report")
 public class Topic {
 
 	@Id

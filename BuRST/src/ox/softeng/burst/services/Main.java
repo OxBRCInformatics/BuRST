@@ -8,6 +8,10 @@ public class Main {
 
 	public static void main(String[] args)
 	{
+		
+		
+		
+		
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 		Runnable rabbitReceiver = new RabbitService();
 		executor.execute(rabbitReceiver);
