@@ -41,7 +41,11 @@ public class Message implements Serializable{
 	@OneToMany(fetch=FetchType.EAGER, cascade = CascadeType.ALL, mappedBy="message")
 	protected List<Metadata> metadata;
 
-	public Message(){}
+	public Message()
+	{
+		topics = new ArrayList<Topic>();
+		metadata = new ArrayList<Metadata>();
+	}
 	
 	public Message(String source, String message, Severity severity, LocalDateTime dateTimeCreated)
 	{
