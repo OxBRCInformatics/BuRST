@@ -1,6 +1,9 @@
-package ox.softeng.burst
+package ox.softeng.burst.grails.plugin
 
 import grails.plugins.Plugin
+import grails.util.Environment
+import ox.softeng.burst.grails.plugin.rabbitmq.databinding.StringXmlDataBindingSourceCreator
+import ox.softeng.burst.grails.plugin.test.BrokenXmlDataBindingSourceCreator
 
 class BurstGrailsPlugin extends Plugin {
 
@@ -8,7 +11,8 @@ class BurstGrailsPlugin extends Plugin {
     def grailsVersion = "3.1.1 > *"
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
-            "grails-app/views/error.gsp"
+            "grails-app/views/error.gsp",
+            '**/grails/plugin/test**'
     ]
 
     // TODO Fill in these fields
@@ -25,6 +29,7 @@ Provides the following classes which can be extended, each will produce BuRST me
 * Grails Restful Controller
 * RabbitMQ Consumer
 '''
+    def profiles = ['web']
 
     // URL to the plugin's documentation
     def documentation = "http://grails.org/plugin/grails-burst-plugin"
@@ -46,9 +51,18 @@ Provides the following classes which can be extended, each will produce BuRST me
     // Online location of the plugin's browseable source code.
     def scm = [url: "https://github.com/olliefreeman/BuRST"]
 
+    def dependsOn = ['rabbitmqNative': "3.1.3 > *"]
+    def loadAfter = ['mimetypes', 'domainClass']
+    def influences = ['rabbitmqNative']
+
     Closure doWithSpring() {
         {->
-            // TODO Implement runtime spring config (optional)
+
+            xmlDataBindingSourceCreator(StringXmlDataBindingSourceCreator)
+
+            if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
+                xmlDataBindingSourceCreator(BrokenXmlDataBindingSourceCreator)
+            }
         }
     }
 

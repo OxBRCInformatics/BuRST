@@ -36,13 +36,11 @@ appender("FILE", FileAppender) {
         pattern = defPattern
     }
 }
-
-root(WARN, ['STDOUT', 'FILE'])
+root(INFO, ['STDOUT', 'FILE'])
 if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
-
     logger('org.grails.orm.hibernate.cfg.HibernateMappingBuilder', OFF)
     logger('org.hibernate.tool.hbm2ddl.SchemaExport', OFF)
-    logger('com.softeng.burst', DEBUG)
+    logger('ox.softeng.burst', DEBUG)
     logger('org.hibernate.SQL', DEBUG)
     logger('org.grails.spring.beans.factory.OptimizedAutowireCapableBeanFactory', ERROR)
 
