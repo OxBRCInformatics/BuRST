@@ -1,0 +1,184 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        maven {url "https://repo.grails.org/grails/core"}
+
+    }
+    dependencies {
+        classpath 'org.springframework.build.gradle:propdeps-plugin:+'
+         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+    }
+}
+
+import org.gradle.logging.ConsoleRenderer
+
+plugins {
+    id 'base'
+    id 'build-dashboard'
+    id 'idea'
+    id 'project-report'
+}
+project.reporting.baseDir = 'reports'
+ext.unitTestFailures = 0
+ext.deployDir = file('deploy')
+
+htmlDependencyReport {
+    projects = project.allprojects
+}
+
+idea {
+    project {
+        languageLevel = rootProject.sourceCompatibility
+        vcs = 'Git'
+        ipr.withXml {provider ->
+            /**
+             * Setup the gradle settings to allow integration into intellij without intellig getting confused
+             */
+            String GRADLE_HOME = System.getenv('GRADLE_HOME') ? System.getenv('GRADLE_HOME') : ''
+            def moduleList = modules.collect {
+                String contRoot = it.contentRoot.toURI().toURL().toString()
+                String root = rootDir.toURI().toURL().toString()
+                String path = contRoot.replace(root, '$PROJECT_DIR$/')
+                path.endsWith('/') ? path.substring(0, path.lastIndexOf('/')) : path
+            }
+
+            def gradleSettings = {
+                option(name: 'linkedExternalProjectsSettings') {
+                    GradleProjectSettings() {
+                        option(name: 'distributionType', value: 'DEFAULT_WRAPPED')
+                        option(name: 'externalProjectPath', value: '$PROJECT_DIR$')
+                        option(name: 'gradleHome', value: GRADLE_HOME)
+                        option(name: 'modules') {
+
+                            set(comment: "${modules.collect {it.name}.join(',')}") {
+                                for (String m : moduleList) {
+                                    option(value: m)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Node gradleNode = provider.node.component.find {it.@name == 'GradleSettings'}
+            if (gradleNode != null) {
+                provider.node.remove(gradleNode)
+            }
+            provider.node.component[0].plus {
+                component(name: 'GradleSettings', gradleSettings)
+            }
+
+            if (provider.node.component.find {it.@name == 'GradleUISettings'} == null) {
+                provider.node.component[0].plus {
+                    component(name: 'GradleUISettings') {
+                        setting(name: 'root')
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Setup the workspace (IWS) file
+     */
+    workspace.iws.withXml {provider ->
+
+        def runManager = provider.node.component.find {it.@name == 'RunManager'}
+
+        /**
+         * Setup JUnit defaults to have the extra JVM options we know we need
+         */
+        def junitDefaults = runManager.configuration.find {it.@type == 'JUnit'}
+        if (junitDefaults != null) {
+            def workingDir = junitDefaults.option.find {it.@name == 'WORKING_DIRECTORY'}
+            workingDir.@value = '$PROJECT_DIR$'
+        }
+
+        def propertiesComponent = provider.node.component.find {
+            it.@name == 'PropertiesComponent'
+        }
+        def dynamicclasspath = propertiesComponent.property.find {it.@name == 'dynamic.classpath'}
+        if (dynamicclasspath != null) {
+            dynamicclasspath.@value == 'true'
+        }
+        else {
+            propertiesComponent.property[-1].plus {
+                property(name: 'dynamic.classpath', value: 'true')
+            }
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = project.gradleVersion
+}
+
+task show() << {
+    logger.quiet "All seems to be working"
+}
+
+task test() {
+    group 'testing'
+    description = 'Runs all the tests'
+    dependsOn 'assemble', 'unitTest'
+}
+
+build {
+    description =
+            'Assembles the project, builds the release archive and runs the unit tests. The complete build process.'
+    dependsOn 'check', 'buildDashboard'
+    doLast {
+        if (unitTestFailures) {
+            String grammer = unitTestFailures == 1 ? 'was 1 unit test failure' : "were $unitTestFailures unit test failures"
+            File indexFile = file("$tasks.unitTest.destinationDir/index.html")
+            String reportUrl = new ConsoleRenderer().asClickableFileUrl(indexFile)
+            logger.quiet("There $grammer. See the report at $reportUrl. (Ctrl+click the URL to open)")
+        }
+    }
+}
+
+clean {
+    delete 'logs', 'reports', 'deploy'
+}
+
+/**
+ * Unit Test task,
+ * This task will generate a TestReport in HTML format for the tests which it reports on
+ * Any unit tests/test tasks should be set to be reported on and depended on by this task
+ */
+task unitTest(type: TestReport) {
+    description = 'Run Unit Tests and compile results into HTML report.'
+    destinationDir file("$rootDir/reports/unitTests")
+    group 'Testing'
+    doLast {
+        logger.info("Test failure count: {}", unitTestFailures)
+        if (unitTestFailures) {
+            String grammer = unitTestFailures == 1 ? 'was 1 unit test failure' : "were $unitTestFailures unit test failures"
+            File indexFile = file("$destinationDir/index.html")
+            String reportUrl = new ConsoleRenderer().asClickableFileUrl(indexFile)
+            logger.quiet("There $grammer. See the report at $reportUrl. (Ctrl+click the URL to open)")
+        }
+    }
+    dependsOn tasks.assemble
+}
+
+apply from: 'gradle/allprojects.gradle'
+apply from: 'gradle/subprojects.gradle'
+
+evaluationDependsOnChildren()
+afterEvaluate {
+
+    tasks.findAll {task -> ['assemble', 'build', 'clean', 'check', 'install'].contains(task.name)}.each {task ->
+        def deps = (subprojects.tasks.collect {
+            it.findByName(task.name)
+        }.flatten() as Set) - null
+        if (deps) {
+            task.dependsOn.each {
+                if (deps.contains(it)) {
+                    deps = deps - it
+                }
+            }
+            deps.each {task.dependsOn it.path}
+        }
+    }
+}
