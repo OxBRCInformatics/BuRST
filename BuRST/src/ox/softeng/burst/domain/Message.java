@@ -7,6 +7,8 @@ import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -29,6 +31,7 @@ public class Message implements Serializable{
 	protected LocalDateTime dateTimeCreated;
 	protected LocalDateTime dateTimeReceived;
 	
+	@Enumerated(EnumType.STRING)
 	protected Severity severity;
 	
 	protected String source;
