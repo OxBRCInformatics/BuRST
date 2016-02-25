@@ -53,3 +53,26 @@ grailsPublish {
     portalUser = ""
     portalPassword = ""
 }
+
+List excludedFiles = [
+        "'**/ox/softeng/burst/grails/plugin/test/**'"
+]
+
+jar {
+    excludedFiles.each {
+        exclude it
+    }
+}
+
+sourcesJar {
+    excludedFiles.each {
+        exclude it
+    }
+}
+
+javadocJar {
+    excludedFiles.each {
+        exclude it
+    }
+}
+

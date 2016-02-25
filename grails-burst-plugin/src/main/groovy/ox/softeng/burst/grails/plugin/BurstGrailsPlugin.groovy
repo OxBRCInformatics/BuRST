@@ -12,14 +12,13 @@ class BurstGrailsPlugin extends Plugin {
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
             "grails-app/views/error.gsp",
-            '**/grails/plugin/test**'
+            '**/ox/softeng/burst/grails/plugin/test/**'
     ]
 
-    // TODO Fill in these fields
     def title = "Grails Burst Plugin"
     // Headline display name of the plugin
-    def author = "Your name"
-    def authorEmail = ""
+    def author = "Oliver Freeman"
+    def authorEmail = "oliver.freeman@ndm.ox.ac.uk"
     def description = '''\
 Ties the BuRST system in with Grails.
 
@@ -32,7 +31,7 @@ Provides the following classes which can be extended, each will produce BuRST me
     def profiles = ['web']
 
     // URL to the plugin's documentation
-    def documentation = "http://grails.org/plugin/grails-burst-plugin"
+    //def documentation = "http://grails.org/plugin/grails-burst-plugin"
 
     // Extra (optional) plugin metadata
 
@@ -60,7 +59,7 @@ Provides the following classes which can be extended, each will produce BuRST me
 
             xmlDataBindingSourceCreator(StringXmlDataBindingSourceCreator)
 
-            if (Environment.current == Environment.DEVELOPMENT || Environment.current == Environment.TEST) {
+            if (Environment.current == Environment.TEST) {
                 xmlDataBindingSourceCreator(BrokenXmlDataBindingSourceCreator)
             }
         }
