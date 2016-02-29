@@ -50,18 +50,18 @@ Provides the following classes which can be extended, each will produce BuRST me
     // Online location of the plugin's browseable source code.
     def scm = [url: "https://github.com/olliefreeman/BuRST"]
 
-    def dependsOn = ['rabbitmqNative': "3.1.3 > *"]
-    def loadAfter = ['mimetypes', 'domainClass']
-    def influences = ['rabbitmqNative']
+    def dependsOn = [core       : grailsVersion,
+                     dataBinding: grailsVersion]
 
     Closure doWithSpring() {
         {->
 
             xmlDataBindingSourceCreator(StringXmlDataBindingSourceCreator)
-
+/*
             if (Environment.current == Environment.TEST) {
                 xmlDataBindingSourceCreator(BrokenXmlDataBindingSourceCreator)
             }
+            */
         }
     }
 

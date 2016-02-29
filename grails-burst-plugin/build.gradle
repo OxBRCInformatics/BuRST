@@ -55,7 +55,7 @@ grailsPublish {
 }
 
 List excludedFiles = [
-        "'**/ox/softeng/burst/grails/plugin/test/**'"
+        "**/ox/softeng/burst/grails/plugin/test/**"
 ]
 
 jar {

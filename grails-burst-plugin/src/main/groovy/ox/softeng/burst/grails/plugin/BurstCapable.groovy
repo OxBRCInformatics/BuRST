@@ -23,12 +23,12 @@ trait BurstCapable {
     String source
 
     void handleException(BurstException ex, Map<String, String> metadataMap) {
-        logger.debug("Handling exception inside Message Consumer {}. {}", getClass(), ex.getMessage())
+        logger.debug("Handling exception inside Burst Capable object {}. {}", getClass(), ex.getMessage())
         burstService.broadcastException ex, source, topics, metadataMap
     }
 
     void handleErrors(Errors errors, String errorCode, Map<String, String> metadataMap) {
-        logger.debug("Handling error inside Message Consumer {}. {}", getClass(), errors)
+        logger.debug("Handling error inside Burst Capable object {} has {} errors", getClass(), errors.errorCount)
         burstService.broadcastErrors errors, errorCode, source, topics, metadataMap
     }
 

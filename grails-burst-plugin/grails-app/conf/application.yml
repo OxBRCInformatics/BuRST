@@ -26,7 +26,7 @@ rabbitmq:
     queues:
         exchange_test:
             type: 'topic'
-            autoDelete: true
+            autoDelete: false
             queues:
                 queue_subset:
                     autoDelete: true
@@ -38,7 +38,7 @@ rabbitmq:
                     autoDelete: true
                     binding: 'test.validation'
                 queue_burst:
-                    autoDelete: true
+                    autoDelete: false
                     binding: '#.burst'
 
 ---
