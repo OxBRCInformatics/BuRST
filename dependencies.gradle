@@ -18,8 +18,8 @@ dependencies {
     compile group: 'org.slf4j', name: 'jul-to-slf4j', version: slf4jVersion
     compile group: 'org.slf4j', name: 'jcl-over-slf4j', version: slf4jVersion
 
-    runtime group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion, transitive: false
-    runtime group: 'ch.qos.logback', name: 'logback-core', version: logbackVersion
+    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion, transitive: false
+    testRuntime group: 'ch.qos.logback', name: 'logback-core', version: logbackVersion
 
     /**
      * Testing
