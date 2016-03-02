@@ -52,7 +52,7 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         try {
             saveResource instance
         } catch (RuntimeException exception) {
-            BurstException burstException = new BurstException('BURST03', 'Failed to save resource', exception)
+            BurstException burstException = new BurstException('BURST01', 'Failed to save resource', exception)
             ((Errors) instance.errors).reject('failed.save', [burstException.message] as Object[], 'Failed to save resource because {0}')
             handleException(burstException, extractRelevantMetadataFromGeneratedInstance(instance as T))
             respond instance.errors, view: 'edit', status: 500
@@ -102,7 +102,7 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         try {
             updateResource instance
         } catch (RuntimeException exception) {
-            BurstException burstException = new BurstException('BURST04', 'Failed to update resource', exception)
+            BurstException burstException = new BurstException('BURST02', 'Failed to update resource', exception)
             ((Errors) instance.errors).reject('failed.save', [burstException.message] as Object[], 'Failed to save resource because {0}')
             handleException(burstException, extractRelevantMetadataFromGeneratedInstance(instance as T))
             respond instance.errors, view: 'edit', status: 500

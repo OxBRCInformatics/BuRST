@@ -2,9 +2,9 @@ package ox.softeng.burst.grails.plugin.test
 
 import com.budjb.rabbitmq.consumer.MessageContext
 import ox.softeng.burst.grails.plugin.exception.BurstException
-import ox.softeng.burst.grails.plugin.rabbitmq.consumer.MessageConsumerBurstCapable
+import ox.softeng.burst.grails.plugin.rabbitmq.consumer.TypedMessageConsumerBurstCapable
 
-class BurstExceptionGeneratingTestConsumer implements MessageConsumerBurstCapable<String> {
+class BurstExceptionGeneratingTestConsumer implements TypedMessageConsumerBurstCapable<String> {
 
     static rabbitConfig = [
             queue: 'exception'

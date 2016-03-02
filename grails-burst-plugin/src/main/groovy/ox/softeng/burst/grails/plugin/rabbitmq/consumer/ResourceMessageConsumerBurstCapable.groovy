@@ -1,13 +1,10 @@
 package ox.softeng.burst.grails.plugin.rabbitmq.consumer
 
 import com.budjb.rabbitmq.consumer.MessageContext
-import groovy.util.slurpersupport.GPathResult
-import groovy.xml.MarkupBuilder
-import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
-import ox.softeng.burst.grails.plugin.BurstCapable
 import ox.softeng.burst.grails.plugin.exception.BurstException
 import ox.softeng.burst.grails.plugin.rabbitmq.databinding.RabbitDataBinder
+import ox.softeng.burst.grails.plugin.rabbitmq.exception.UnacceptableMimeTypeException
 
 import java.lang.reflect.ParameterizedType
 
@@ -16,17 +13,22 @@ import static org.springframework.http.HttpStatus.*
 /**
  * @since 24/02/2016
  */
-trait ResourceMessageConsumerBurstCapable<R> extends BurstCapable implements RabbitDataBinder {
+trait ResourceMessageConsumerBurstCapable<R> extends MessageConsumerBurstCapable implements RabbitDataBinder {
 
     abstract Map<String, String> extractRelevantMetadataFromGeneratedInstance(R instance)
 
     String handleMessage(String body, MessageContext messageContext) {
         try {
+            if (!acceptedContentType(messageContext)) {
+                handleException(new UnacceptableMimeTypeException('BURST08', rabbitConfig.queue, messageContext.properties.contentType),
+                                messageContext)
+                return respond(NOT_ACCEPTABLE, body)
+            }
             return processMessage(body, messageContext) as String
         } catch (BurstException ex) {
-            handleException(ex, [:])
+            handleException(ex, messageContext)
         } catch (Exception ex) {
-            handleException(new BurstException('BURST01', 'Unhandled Exception', ex), [:])
+            handleException(new BurstException('BURST09', 'Unhandled Exception', ex), messageContext)
         }
         respond INTERNAL_SERVER_ERROR, body
     }
@@ -46,7 +48,7 @@ trait ResourceMessageConsumerBurstCapable<R> extends BurstCapable implements Rab
 
         // Binding failed so we have nothing to extract for metadata
         if (instance instanceof Errors) {
-            handleErrors(instance, 'VAL01', [:])
+            handleErrors(instance, 'BURSTVAL01', messageContext)
             return respond(UNPROCESSABLE_ENTITY, object)
         }
 
@@ -55,7 +57,7 @@ trait ResourceMessageConsumerBurstCapable<R> extends BurstCapable implements Rab
         instance.validate()
         // If errors here then object has data but does not pass validation constraints
         if (instance.hasErrors()) {
-            handleErrors instance.errors as Errors, 'VAL02', extractRelevantMetadataFromGeneratedInstance(instance as R)
+            handleErrors instance.errors as Errors, 'BURSTVAL02', messageContext, extractRelevantMetadataFromGeneratedInstance(instance as R)
             return respond(UNPROCESSABLE_ENTITY, object)
         }
         logger.debug('{} Instance validated', messageContext.consumerTag)
@@ -63,8 +65,8 @@ trait ResourceMessageConsumerBurstCapable<R> extends BurstCapable implements Rab
         try {
             saveResource instance as R
         } catch (RuntimeException exception) {
-            BurstException burstException = new BurstException('BURST02', 'Failed to save resource', exception)
-            handleException(burstException, extractRelevantMetadataFromGeneratedInstance(instance as R))
+            BurstException burstException = new BurstException('BURST10', 'Failed to save resource', exception)
+            handleException(burstException, messageContext, extractRelevantMetadataFromGeneratedInstance(instance as R))
             return respond(INTERNAL_SERVER_ERROR, object)
         }
 
@@ -88,18 +90,6 @@ trait ResourceMessageConsumerBurstCapable<R> extends BurstCapable implements Rab
      */
     R saveResource(R resource) {
         resource.save flush: true
-    }
-
-    def respond(HttpStatus status, def object) {
-        def writer = new StringWriter()
-        def xml = new MarkupBuilder(writer)
-        xml.response "${status.value()} ${status.reasonPhrase}"
-
-        String response = writer.toString()
-        logger.debug('Response: {}', response)
-
-        if (object instanceof GPathResult) return new XmlSlurper().parseText(response)
-        response
     }
 
     Class<R> getType() {
