@@ -20,9 +20,7 @@ class BurstListeningConsumer {
      * @return
      */
     String handleMessage(String body, MessageContext messageContext) {
-
         logger.error 'Burst seeing message {}', body
-
-
+        body
     }
 }
