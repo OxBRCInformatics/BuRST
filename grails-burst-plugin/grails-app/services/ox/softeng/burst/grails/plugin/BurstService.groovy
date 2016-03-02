@@ -69,7 +69,7 @@ class BurstService {
     }
 
     void broadcastErrors(Errors errors, String errorCode, String source, List<String> topics, Map<String, String> metadataMap = [:]) {
-        String details = "$errorCode - Errors while trying to process a '${errors.objectName}' resource::\n"
+        String details = "$errorCode - Errors while trying to process '${errors.objectName}' resource::\n"
 
         errors.allErrors.each {error ->
             details += "  ${messageSource.getMessage(error, Locale.default)}\n"
