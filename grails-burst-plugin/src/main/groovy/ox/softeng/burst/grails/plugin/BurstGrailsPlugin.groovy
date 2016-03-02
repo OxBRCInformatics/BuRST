@@ -58,9 +58,7 @@ Provides the following classes which can be extended, each will produce BuRST me
 
             xmlDataBindingSourceCreator(StringXmlDataBindingSourceCreator)
 /*
-            if (Environment.current == Environment.TEST) {
-                xmlDataBindingSourceCreator(BrokenXmlDataBindingSourceCreator)
-            }
+
             */
         }
     }
