@@ -1,19 +1,11 @@
-package $
+package ${packageName}
 
-import $
+
+import ${packageName}.${className}
 import grails.web.mime.MimeType
-
-{packageName}
-
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.ResourceMessageConsumerBurstCapable
 
-{packageName}.$ {className}
-
-class $ {
-    className
-}
-
-Consumer implements ResourceMessageConsumerBurstCapable < $ {className} > {
+class ${className}Consumer implements ResourceMessageConsumerBurstCapable <${className}> {
 
     static rabbitConfig = [
             : // TODO: Setup config.
@@ -25,7 +17,7 @@ Consumer implements ResourceMessageConsumerBurstCapable < $ {className} > {
     }
 
     @Override
-    Map<String, String> extractRelevantMetadataFromGeneratedInstance($ {className} instance ) {
+    Map<String, String> extractRelevantMetadataFromGeneratedInstance(${className} instance ) {
         [:] //TODO extract metadata from instance
     }
 

@@ -1,16 +1,10 @@
-package $
-
-{packageName}
+package ${packageName}
 
 import com.budjb.rabbitmq.consumer.MessageContext
 import grails.web.mime.MimeType
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.MessageConsumerBurstCapable
 
-class $ {
-    className
-}
-
-Consumer implements MessageConsumerBurstCapable {
+class ${className}Consumer implements MessageConsumerBurstCapable {
 
     static rabbitConfig = [
             : // TODO: Setup config.
