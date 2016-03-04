@@ -52,6 +52,8 @@ public class Main {
 		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "ox.softeng.burst", props);
 		
 		
+		/* Set up a test user...
+		
 		User u = new User("James", "Welch", "jamesrwelch@gmail.com");
 		
 		Subscription s = new Subscription(u, Frequency.IMMEDIATE, Severity.DEBUG);
@@ -62,6 +64,7 @@ public class Main {
 		em.persist(s);
 		em.getTransaction().commit();
 		em.close();
+		*/
 		
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 		Runnable rabbitReceiver = new RabbitService(RabbitMQHost, RabbitMQExchange, RabbitMQQueue, entityManagerFactory);
