@@ -1,6 +1,6 @@
 package ${packageName}
 
-import ${packageName}.$ {className}
+import ${packageName}.${className}
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.XmlResourceMessageConsumerBurstCapable
 
 class ${className}Consumer implements XmlResourceMessageConsumerBurstCapable <${className}> {
