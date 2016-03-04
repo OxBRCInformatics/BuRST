@@ -2,6 +2,16 @@ package ox.softeng.burst.services;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+
+import ox.softeng.burst.domain.Frequency;
+import ox.softeng.burst.domain.Severity;
+import ox.softeng.burst.domain.Subscription;
+import ox.softeng.burst.domain.User;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -39,11 +49,26 @@ public class Main {
 		System.out.println("RabbitMQ Exchange Name: " + RabbitMQExchange);
 		System.out.println("RabbitMQ Queue Name: " + RabbitMQQueue);
 		
+		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory( "ox.softeng.burst", props);
+		
+		
+		User u = new User("James", "Welch", "jamesrwelch@gmail.com");
+		
+		Subscription s = new Subscription(u, Frequency.IMMEDIATE, Severity.DEBUG);
+		s.addTopic("File Receipt");
+		EntityManager em = entityManagerFactory.createEntityManager();
+		em.getTransaction().begin();
+		em.persist(u);
+		em.persist(s);
+		em.getTransaction().commit();
+		em.close();
+		
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
-		Runnable rabbitReceiver = new RabbitService(RabbitMQHost, RabbitMQExchange, RabbitMQQueue, props);
+		Runnable rabbitReceiver = new RabbitService(RabbitMQHost, RabbitMQExchange, RabbitMQQueue, entityManagerFactory);
 		executor.execute(rabbitReceiver);
-		System.out.println("Bof");
-		executor.scheduleAtFixedRate(new ReportScheduler(), 1, 2, TimeUnit.MINUTES);
+		ReportScheduler repSched = new ReportScheduler(entityManagerFactory, props);
+		
+		executor.scheduleAtFixedRate(repSched, 0, 1, TimeUnit.MINUTES);
 	}
 	
 	

@@ -53,7 +53,6 @@ public class HibernateUtil {
                         Message.class,
                 		Severity.class,
                 		Subscription.class,
-                		Topic.class,
                 		User.class
                 );
     }

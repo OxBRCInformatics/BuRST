@@ -13,7 +13,6 @@ import javax.persistence.Persistence;
 
 import ox.softeng.burst.domain.Message;
 import ox.softeng.burst.domain.Severity;
-import ox.softeng.burst.domain.Topic;
 import ox.softeng.burst.domain.User;
 
 public class TestInstall {
@@ -31,10 +30,10 @@ public class TestInstall {
 		entityManager.persist(u);
 		for(String t : topicStrings)
 		{
-			entityManager.persist(new Topic(t));
+			entityManager.persist(t);
 		}
 		Message m = new Message("Source System","Message Details...", Severity.ERROR, LocalDateTime.now());
-		m.addTopic(new Topic("topic 3"));
+		m.addTopic("topic 3");
 		entityManager.merge(m);
 		entityManager.getTransaction().commit();
 		entityManager.close();

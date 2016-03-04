@@ -14,7 +14,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import ox.softeng.burst.domain.Message;
 import ox.softeng.burst.domain.Severity;
-import ox.softeng.burst.domain.Topic;
 
 @XmlRootElement(name="message")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -55,7 +54,7 @@ public class MessageDTO implements Serializable{
 		Message msg = new Message(this.source, this.details, this.severity, dateTimeCreated);
 		for(String topic : topics)
 		{
-			msg.addTopic(new Topic(topic));
+			msg.addTopic(topic);
 		}
 		if(metadata != null)
 		{

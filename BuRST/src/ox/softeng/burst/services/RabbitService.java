@@ -21,7 +21,7 @@ public class RabbitService implements Runnable {
 	EntityManagerFactory entityManagerFactory;
 	String rabbitMQQueue;
 
-	public RabbitService(String RabbitMQHost, String RabbitMQExchange, String RabbitMQQueue, Properties props)
+	public RabbitService(String RabbitMQHost, String RabbitMQExchange, String RabbitMQQueue, EntityManagerFactory emf)
 	{
 		ConnectionFactory factory = new ConnectionFactory();
 		factory.setHost(RabbitMQHost);
@@ -30,7 +30,7 @@ public class RabbitService implements Runnable {
 			channel = connection.createChannel();
 			channel.exchangeDeclare(RabbitMQExchange, "topic", true);
 			this.rabbitMQQueue = RabbitMQQueue;
-			entityManagerFactory = Persistence.createEntityManagerFactory( "ox.softeng.burst", props);
+			entityManagerFactory = emf;
 
 			//entityManager.getTransaction().begin();
 			//entityManager.getTransaction().commit();
