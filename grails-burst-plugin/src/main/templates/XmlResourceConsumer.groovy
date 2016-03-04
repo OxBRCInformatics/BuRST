@@ -3,7 +3,7 @@ package ${packageName}
 import ${packageName}.${className}
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.XmlResourceMessageConsumerBurstCapable
 
-class ${className}Consumer implements XmlResourceMessageConsumerBurstCapable <${className}> {
+class ${className}Consumer extends XmlResourceMessageConsumerBurstCapable <${className}> {
 
     static rabbitConfig = [
             : // TODO: Setup config.
