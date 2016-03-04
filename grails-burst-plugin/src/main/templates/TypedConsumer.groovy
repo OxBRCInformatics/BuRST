@@ -5,7 +5,7 @@ import com.budjb.rabbitmq.consumer.MessageContext
 import grails.web.mime.MimeType
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.TypedMessageConsumerBurstCapable
 
-class ${className}Consumer implements TypedMessageConsumerBurstCapable <${className}> {
+class ${className}Consumer implements TypedMessageConsumerBurstCapable<${className}> {
 
     static rabbitConfig = [
             : // TODO: Setup config.
