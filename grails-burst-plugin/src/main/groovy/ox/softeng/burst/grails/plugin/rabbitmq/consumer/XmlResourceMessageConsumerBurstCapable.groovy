@@ -12,7 +12,7 @@ import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE
 /**
  * @since 18/02/2016
  */
-trait XmlResourceMessageConsumerBurstCapable<R> implements ResourceMessageConsumerBurstCapable<R> {
+abstract class XmlResourceMessageConsumerBurstCapable<R> extends ResourceMessageConsumerBurstCapable<R> {
 
     List<MimeType> getContentTypes() {
         [MimeType.XML, MimeType.TEXT_XML]

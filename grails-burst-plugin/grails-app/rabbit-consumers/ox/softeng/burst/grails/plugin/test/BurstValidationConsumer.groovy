@@ -6,7 +6,7 @@ import ox.softeng.burst.grails.plugin.rabbitmq.consumer.XmlResourceMessageConsum
 
 import java.sql.SQLException
 
-class BurstValidationConsumer implements XmlResourceMessageConsumerBurstCapable<Test> {
+class BurstValidationConsumer extends XmlResourceMessageConsumerBurstCapable<Test> {
 
     static rabbitConfig = [
             queue: 'validation'

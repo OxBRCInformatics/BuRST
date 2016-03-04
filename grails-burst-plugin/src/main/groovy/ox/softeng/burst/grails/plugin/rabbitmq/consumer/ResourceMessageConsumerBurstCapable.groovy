@@ -1,6 +1,7 @@
 package ox.softeng.burst.grails.plugin.rabbitmq.consumer
 
 import com.budjb.rabbitmq.consumer.MessageContext
+import grails.transaction.Transactional
 import org.springframework.validation.Errors
 import ox.softeng.burst.grails.plugin.exception.BurstException
 import ox.softeng.burst.grails.plugin.rabbitmq.databinding.RabbitDataBinder
@@ -13,7 +14,8 @@ import static org.springframework.http.HttpStatus.*
 /**
  * @since 24/02/2016
  */
-trait ResourceMessageConsumerBurstCapable<R> extends MessageConsumerBurstCapable implements RabbitDataBinder {
+@Transactional
+abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinder, MessageConsumerBurstCapable {
 
     abstract Map<String, String> extractRelevantMetadataFromGeneratedInstance(R instance)
 
@@ -93,6 +95,8 @@ trait ResourceMessageConsumerBurstCapable<R> extends MessageConsumerBurstCapable
     }
 
     Class<R> getType() {
-        ((ParameterizedType) this.class.genericInterfaces.find {it instanceof ParameterizedType}).actualTypeArguments[0] as Class
+        ParameterizedType ptype = this.class.genericInterfaces.find {it instanceof ParameterizedType} ?:
+                                  this.class.genericSuperclass.find {it instanceof ParameterizedType}
+        ptype.actualTypeArguments[0] as Class
     }
 }
