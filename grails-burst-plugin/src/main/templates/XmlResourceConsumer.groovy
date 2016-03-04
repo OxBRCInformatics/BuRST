@@ -1,23 +1,16 @@
-package $
+package ${packageName}
 
-import $
+import ${packageName}.$ {className}
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.XmlResourceMessageConsumerBurstCapable
 
-{packageName}
-{packageName}.$ {className}
-
-class $ {
-    className
-}
-
-Consumer implements XmlResourceMessageConsumerBurstCapable < $ {className} > {
+class ${className}Consumer implements XmlResourceMessageConsumerBurstCapable <${className}> {
 
     static rabbitConfig = [
             : // TODO: Setup config.
     ]
 
     @Override
-    Map<String, String> extractRelevantMetadataFromGeneratedInstance($ {className} instance ) {
+    Map<String, String> extractRelevantMetadataFromGeneratedInstance(${className} instance ) {
         [:] //TODO extract metadata from instance
     }
 

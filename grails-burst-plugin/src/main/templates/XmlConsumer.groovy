@@ -1,15 +1,9 @@
-package $
-
-{packageName}
+package ${packageName}
 
 import com.budjb.rabbitmq.consumer.MessageContext
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.XmlMessageConsumerBurstCapable
 
-class $ {
-    className
-}
-
-Consumer implements XmlMessageConsumerBurstCapable {
+class ${className}Consumer implements XmlMessageConsumerBurstCapable {
 
     static rabbitConfig = [
             : // TODO: Setup config.

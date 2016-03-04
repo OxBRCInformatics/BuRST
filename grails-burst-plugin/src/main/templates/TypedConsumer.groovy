@@ -1,20 +1,11 @@
-package $
+package ${packageName}
 
-import $
+import ${packageName}.${className}
 import com.budjb.rabbitmq.consumer.MessageContext
-
-{packageName}
-
 import grails.web.mime.MimeType
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.TypedMessageConsumerBurstCapable
 
-{packageName}.$ {className}
-
-class $ {
-    className
-}
-
-Consumer implements TypedMessageConsumerBurstCapable < $ {className} > {
+class ${className}Consumer implements TypedMessageConsumerBurstCapable <${className}> {
 
     static rabbitConfig = [
             : // TODO: Setup config.
@@ -31,8 +22,7 @@ Consumer implements TypedMessageConsumerBurstCapable < $ {className} > {
     }
 
     @Override
-            $
-    {className} processMessage($ {className} body, MessageContext messageContext) {
+    ${className} processMessage(${className} body, MessageContext messageContext) {
         return body //TODO process message body
     }
 }
