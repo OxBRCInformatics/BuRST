@@ -2,10 +2,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>BuRST</groupId>
 	<artifactId>BuRST</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<scm>
 		<developerConnection>scm:git:https://jamesrwelch@github.com/jamesrwelch/BuRST.git</developerConnection>
-		<tag>BuRST-0.0.1</tag>
+		<tag>BuRST-0.0.30</tag>
 	</scm>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
@@ -108,6 +108,11 @@
 			<groupId>com.rabbitmq</groupId>
 			<artifactId>amqp-client</artifactId>
 			<version>3.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4.7</version>
 		</dependency>
 
 	</dependencies>

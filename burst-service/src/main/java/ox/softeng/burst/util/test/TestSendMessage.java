@@ -10,21 +10,21 @@ import java.nio.file.Paths;
 import com.rabbitmq.client.Channel;
 
 public class TestSendMessage {
-	  private final static String QUEUE_NAME = "BuRST";
+	  private final static String QUEUE_NAME = "burst";
 
 	  public static void main(String[] argv) throws Exception {
 	    ConnectionFactory factory = new ConnectionFactory();
-	    factory.setHost("localhost");
+	    factory.setHost("192.168.99.100");
 	    Connection connection = factory.newConnection();
 	    Channel channel = connection.createChannel();
 
-	    channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+	    channel.exchangeDeclare("Carfax", "topic", true);
 	    
 
 	    for(int i=0;i<argv.length;i++)
 	    {
 			String message = new String(Files.readAllBytes(Paths.get(argv[i])));
-		    channel.basicPublish("", QUEUE_NAME, null, message.getBytes("UTF-8"));
+		    channel.basicPublish("Carfax", "noaudit.burst", null, message.getBytes("UTF-8"));
 		    System.out.println(" [x] Sent '" + message + "'");
 	    }
 	    

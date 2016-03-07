@@ -2,7 +2,6 @@ package ox.softeng.burst.util.test;
 
 import ox.softeng.burst.domain.Message;
 import ox.softeng.burst.domain.Severity;
-import ox.softeng.burst.domain.Topic;
 import ox.softeng.burst.domain.User;
 
 import javax.persistence.EntityManager;
@@ -31,11 +30,11 @@ public class TestInstall {
 		entityManager.persist(u);
 		for(String t : topicStrings)
 		{
-			entityManager.persist(new Topic(t));
+			entityManager.persist(t);
 		}
 		Message m = new Message("Source System", "Message Details...", Severity.ERROR, OffsetDateTime.now(ZoneId.of("UTC")));
-		m.addTopic(new Topic("topic 3"));
-		entityManager.persist(m);
+		m.addTopic("topic 3");
+		entityManager.merge(m);
 		entityManager.getTransaction().commit();
 		entityManager.close();
 	}	

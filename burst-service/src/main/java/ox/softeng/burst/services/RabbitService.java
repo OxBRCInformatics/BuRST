@@ -6,6 +6,7 @@ import ox.softeng.burst.domain.Message;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
 import javax.persistence.EntityManager;
@@ -15,22 +16,21 @@ import javax.xml.bind.JAXB;
 
 public class RabbitService implements Runnable {
 
-	private final static String QUEUE_NAME = "BuRST";
-
 	Connection connection;
 	Channel channel;
 	EntityManagerFactory entityManagerFactory;
+	String rabbitMQQueue;
 
-	public RabbitService()
+	public RabbitService(String RabbitMQHost, String RabbitMQExchange, String RabbitMQQueue, EntityManagerFactory emf)
 	{
 		ConnectionFactory factory = new ConnectionFactory();
-		factory.setHost("localhost");
+		factory.setHost(RabbitMQHost);
 		try {
 			connection = factory.newConnection();
 			channel = connection.createChannel();
-			channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-
-			entityManagerFactory = Persistence.createEntityManagerFactory( "ox.softeng.burst" );
+			channel.exchangeDeclare(RabbitMQExchange, "topic", true);
+			this.rabbitMQQueue = RabbitMQQueue;
+			entityManagerFactory = emf;
 
 			//entityManager.getTransaction().begin();
 			//entityManager.getTransaction().commit();
@@ -73,7 +73,7 @@ public class RabbitService implements Runnable {
 			}
 		};
 		try {
-			channel.basicConsume(QUEUE_NAME, true, consumer);
+			channel.basicConsume(rabbitMQQueue, true, consumer);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
