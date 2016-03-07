@@ -1,0 +1,21 @@
+language: groovy
+
+jdk:
+- oraclejdk8
+
+services:
+- rabbitmq
+
+install:
+  - export CDIR=`pwd`
+  - git clone --branch v3.2.2-rabbitmq-native3 https://github.com/olliefreeman/grails-rabbitmq-native.git ~/olliefreeman/grails-rabbitmq-native
+  - cd ~/olliefreeman/grails-rabbitmq-native
+  - ./gradlew install
+  - cd $CDIR
+
+before_cache:
+  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/

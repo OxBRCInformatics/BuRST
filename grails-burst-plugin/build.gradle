@@ -1,0 +1,78 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        maven {url "https://repo.grails.org/grails/core"}
+    }
+    dependencies {
+        classpath "org.grails:grails-gradle-plugin:$grailsVersion"
+    }
+}
+
+apply plugin: "org.grails.grails-plugin"
+apply plugin: "org.grails.grails-plugin-publish"
+
+ext {
+    grailsVersion = project.grailsVersion
+}
+
+repositories {
+    mavenLocal()
+    maven {url "https://repo.grails.org/grails/core"}
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.grails:grails-bom:$grailsVersion"
+    }
+    applyMavenExclusions false
+}
+
+dependencies {
+    console "org.grails:grails-console"
+    profile "org.grails.profiles:web-plugin:$grailsVersion"
+    provided "org.grails:grails-plugin-services"
+    provided "org.grails:grails-plugin-domain-class"
+
+    provided "org.grails.plugins:hibernate4:$gormVersion"
+    provided "org.hibernate:hibernate-ehcache"
+
+    provided 'javax.servlet:javax.servlet-api:3.1.0'
+}
+
+grailsPublish {
+    // TODO: Provide values here
+    user = 'user'
+    key = 'key'
+    githubSlug = 'foo/bar'
+    license {
+        name = 'Apache-2.0'
+    }
+    title = "My Plugin"
+    desc = "Full plugin description"
+    developers = [johndoe: "John Doe"]
+    portalUser = ""
+    portalPassword = ""
+}
+
+List excludedFiles = [
+        "**/ox/softeng/burst/grails/plugin/test/**"
+]
+
+jar {
+    excludedFiles.each {
+        exclude it
+    }
+}
+
+sourcesJar {
+    excludedFiles.each {
+        exclude it
+    }
+}
+
+javadocJar {
+    excludedFiles.each {
+        exclude it
+    }
+}
+
