@@ -8,7 +8,7 @@ services:
 
 install:
   - export CDIR=`pwd`
-  - git clone https://github.com/olliefreeman/grails-rabbitmq-native.git ~/olliefreeman/grails-rabbitmq-native
+  - git clone --branch v3.2.2-rabbitmq-native3 https://github.com/olliefreeman/grails-rabbitmq-native.git ~/olliefreeman/grails-rabbitmq-native
   - cd ~/olliefreeman/grails-rabbitmq-native
   - ./gradlew install
   - cd $CDIR

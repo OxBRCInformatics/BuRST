@@ -24,6 +24,16 @@ rabbitmq:
         isDefault: true
         name: 'default'
     queues:
+        exchange_Carfax:
+            type: topic
+            durable: true
+            queues:
+                queue_burst:
+                    durable: true
+                    binding: '#.burst'
+                queue_sample-tracking:
+                    durable: true
+                    binding: '#.sample-tracking'
         exchange_test:
             type: 'topic'
             autoDelete: false
@@ -37,9 +47,6 @@ rabbitmq:
                 queue_validation:
                     autoDelete: true
                     binding: 'test.validation'
-                queue_burst:
-                    autoDelete: false
-                    binding: '#.burst'
 
 ---
 hibernate:

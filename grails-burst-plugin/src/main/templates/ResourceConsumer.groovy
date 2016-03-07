@@ -5,7 +5,7 @@ import ${packageName}.${className}
 import grails.web.mime.MimeType
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.ResourceMessageConsumerBurstCapable
 
-class ${className}Consumer extends ResourceMessageConsumerBurstCapable <${className}> {
+class ${className}Consumer extends ResourceMessageConsumerBurstCapable<${className}> {
 
     static rabbitConfig = [
             : // TODO: Setup config.

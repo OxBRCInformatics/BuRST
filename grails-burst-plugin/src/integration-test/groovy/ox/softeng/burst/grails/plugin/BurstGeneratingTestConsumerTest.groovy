@@ -11,13 +11,14 @@ import grails.web.mime.MimeType
 import org.springframework.context.ApplicationContext
 import ox.softeng.burst.grails.plugin.test.BurstListeningConsumer
 import ox.softeng.burst.grails.plugin.test.Test
+import spock.lang.Specification
 
 /**
  * @since 18/02/2016
  */
 @Rollback
 @Integration
-class BurstGeneratingTestConsumerTest extends GebSpec {
+class BurstGeneratingTestConsumerTest extends Specification {
 
     RabbitMessagePublisher rabbitMessagePublisher
     BurstListeningConsumer burstListeningConsumer
@@ -45,7 +46,8 @@ class BurstGeneratingTestConsumerTest extends GebSpec {
         sleep(2000)
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
-        1 * burstListeningConsumer.handleMessage({it.contains('BURST01')} as String, _ as MessageContext)
+        1 * burstListeningConsumer.handleMessage({it.contains('BURST03')} as String, _ as MessageContext)
+        0 * _
     }
 
     void 'testing handled exception'() {
@@ -60,6 +62,7 @@ class BurstGeneratingTestConsumerTest extends GebSpec {
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
         1 * burstListeningConsumer.handleMessage({it.contains('INT01')} as String, _ as MessageContext)
+        0 * _
     }
 
     void 'testing nested exception'() {
@@ -74,6 +77,7 @@ class BurstGeneratingTestConsumerTest extends GebSpec {
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
         1 * burstListeningConsumer.handleMessage({it.contains('INT02')} as String, _ as MessageContext)
+        0 * _
     }
 
     void 'testing validation errors'() {
@@ -89,6 +93,7 @@ class BurstGeneratingTestConsumerTest extends GebSpec {
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
         1 * burstListeningConsumer.handleMessage({it.contains('VAL02')} as String, _ as MessageContext)
+        0 * _
 
     }
 
@@ -105,6 +110,7 @@ class BurstGeneratingTestConsumerTest extends GebSpec {
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
         0 * burstListeningConsumer.handleMessage(_ as String, _ as MessageContext)
+        0 * _
 
         and: 'we should have an instance of test'
         Test.countByNameAndType('test valid', 'test valid')
@@ -125,6 +131,7 @@ class BurstGeneratingTestConsumerTest extends GebSpec {
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
         1 * burstListeningConsumer.handleMessage({it.contains('VAL01')} as String, _ as MessageContext)
+        0 * _
 
 
     }
@@ -141,7 +148,8 @@ class BurstGeneratingTestConsumerTest extends GebSpec {
         sleep(1000)
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
-        1 * burstListeningConsumer.handleMessage({it.contains('BURST02')} as String, _ as MessageContext)
+        1 * burstListeningConsumer.handleMessage({it.contains('BURST10')} as String, _ as MessageContext)
+        0 * _
 
 
     }

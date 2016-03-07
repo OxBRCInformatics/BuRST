@@ -2,6 +2,7 @@ package ox.softeng.burst.grails.plugin.rabbitmq.consumer
 
 import com.budjb.rabbitmq.consumer.MessageContext
 import grails.transaction.Transactional
+import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
 import ox.softeng.burst.grails.plugin.exception.BurstException
 import ox.softeng.burst.grails.plugin.rabbitmq.databinding.RabbitDataBinder
@@ -40,41 +41,50 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
      * Response will be in the correct type as XML with a HTTP status code and reason in the body.
      */
     def processMessage(def body, MessageContext messageContext) {
-        logger.debug('{} Processing message body of type "{}"', messageContext.consumerTag, body.getClass())
-        save(body, messageContext)
+        logger.debug('{} - Processing message body of type "{}"', messageContext.properties.messageId?:messageContext.consumerTag, body.getClass())
+        def result = save(body, messageContext)
+        if(result instanceof HttpStatus) return respond(result, body)
+        respond CREATED, body
     }
 
+    /**
+     *
+     * @param object
+     * @param messageContext
+     * @return HTTPStatus if failed or the resource instance if created and saved
+     */
     def save(def object, MessageContext messageContext) {
-        logger.debug('{} Saving new object with content-type "{}"', messageContext.consumerTag, messageContext.properties.contentType)
+        logger.debug('{} - Saving new object with content-type "{}"', messageContext.properties.messageId?:messageContext.consumerTag,
+                     messageContext.properties.contentType)
         def instance = createResource object, messageContext
 
         // Binding failed so we have nothing to extract for metadata
         if (instance instanceof Errors) {
             handleErrors(instance, 'BURSTVAL01', messageContext)
-            return respond(UNPROCESSABLE_ENTITY, object)
+            return UNPROCESSABLE_ENTITY
         }
 
-        logger.debug('{} Instance of type "{}" created', messageContext.consumerTag, instance.class)
+        logger.debug('{} - Instance of type "{}" created', messageContext.properties.messageId?:messageContext.consumerTag, instance.class)
 
         instance.validate()
         // If errors here then object has data but does not pass validation constraints
         if (instance.hasErrors()) {
             handleErrors instance.errors as Errors, 'BURSTVAL02', messageContext, extractRelevantMetadataFromGeneratedInstance(instance as R)
-            return respond(UNPROCESSABLE_ENTITY, object)
+            return UNPROCESSABLE_ENTITY
         }
-        logger.debug('{} Instance validated', messageContext.consumerTag)
+        logger.debug('{} - Instance validated', messageContext.properties.messageId?:messageContext.consumerTag)
 
         try {
             saveResource instance as R
         } catch (RuntimeException exception) {
             BurstException burstException = new BurstException('BURST10', 'Failed to save resource', exception)
             handleException(burstException, messageContext, extractRelevantMetadataFromGeneratedInstance(instance as R))
-            return respond(INTERNAL_SERVER_ERROR, object)
+            return INTERNAL_SERVER_ERROR
         }
 
-        logger.debug('{} Instance saved', messageContext.consumerTag)
+        logger.debug('{} - Instance saved', messageContext.properties.messageId?:messageContext.consumerTag)
 
-        respond(CREATED, object)
+        instance
     }
 
     def createResource(def objectToBind, MessageContext context) {
@@ -95,8 +105,6 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
     }
 
     Class<R> getType() {
-        ParameterizedType ptype = this.class.genericInterfaces.find {it instanceof ParameterizedType} ?:
-                                  this.class.genericSuperclass.find {it instanceof ParameterizedType}
-        ptype.actualTypeArguments[0] as Class
+        ((ParameterizedType)this.class.genericSuperclass.find {it instanceof ParameterizedType}).actualTypeArguments[0] as Class
     }
 }
