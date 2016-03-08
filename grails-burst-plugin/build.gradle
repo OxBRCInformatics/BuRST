@@ -9,7 +9,7 @@ buildscript {
 }
 
 apply plugin: "org.grails.grails-plugin"
-apply plugin: "org.grails.grails-plugin-publish"
+//apply plugin: "org.grails.grails-plugin-publish"
 
 ext {
     grailsVersion = project.grailsVersion
@@ -18,6 +18,7 @@ ext {
 repositories {
     mavenLocal()
     maven {url "https://repo.grails.org/grails/core"}
+    maven {url "http://dl.bintray.com/olliefreeman/maven"}
 }
 
 dependencyManagement {
@@ -39,20 +40,20 @@ dependencies {
     provided 'javax.servlet:javax.servlet-api:3.1.0'
 }
 
-grailsPublish {
-    // TODO: Provide values here
-    user = 'user'
-    key = 'key'
-    githubSlug = 'foo/bar'
-    license {
-        name = 'Apache-2.0'
-    }
-    title = "My Plugin"
-    desc = "Full plugin description"
-    developers = [johndoe: "John Doe"]
-    portalUser = ""
-    portalPassword = ""
-}
+//grailsPublish {
+//    // TODO: Provide values here
+//    user = 'user'
+//    key = 'key'
+//    githubSlug = 'foo/bar'
+//    license {
+//        name = 'Apache-2.0'
+//    }
+//    title = "My Plugin"
+//    desc = "Full plugin description"
+//    developers = [johndoe: "John Doe"]
+//    portalUser = ""
+//    portalPassword = ""
+//}
 
 List excludedFiles = [
         "**/ox/softeng/burst/grails/plugin/test/**"
