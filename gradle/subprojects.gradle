@@ -110,7 +110,7 @@ subprojects {
         archives javadocJar
     }
 
-/*
+
     bintray {
         user = System.getenv('BINTRAY_USER')
         key = System.getenv('BINTRAY_KEY')
@@ -119,22 +119,22 @@ subprojects {
             name = project.name
             userOrg = 'olliefreeman'
             licenses = ['Apache-2.0']
-            websiteUrl = 'https://github.com/olliefreeman/grails-utils'
-            vcsUrl = 'https://github.com/olliefreeman/grails-utils.git'
-            githubRepo = 'olliefreeman/grails-utils'
+            websiteUrl = 'https://github.com/olliefreeman/BuRST'
+            vcsUrl = 'https://github.com/olliefreeman/BuRST.git'
+            githubRepo = 'olliefreeman/BuRST'
             githubReleaseNotesFile = 'README.md'
             version {
                 name = project.version
-                desc = "Grails Utils - ${project.name} ${project.version}"
+                desc = "BuRST Service and Grails Plugin - ${project.name} ${project.version}"
                 released = new Date()
                 vcsTag = "${project.version}"
             }
         }
         configurations = ['archives']
         dryRun = false //Whether to run this as dry-run, without deploying
-        publish = false //If version should be auto published after an upload
+        publish = true //If version should be auto published after an upload
     }
-*/
+
     afterEvaluate {
 
         /*
