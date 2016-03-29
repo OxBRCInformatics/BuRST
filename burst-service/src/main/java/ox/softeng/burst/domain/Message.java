@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -66,6 +67,7 @@ public class Message implements Serializable{
 
     protected String source;
 
+    @Column(length=10485760)
     protected String message;
 
     @Fetch(FetchMode.JOIN)

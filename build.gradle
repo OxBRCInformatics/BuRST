@@ -16,6 +16,7 @@ plugins {
     id 'base'
     id 'build-dashboard'
     id 'idea'
+    id 'eclipse'
     id 'project-report'
 }
 project.reporting.baseDir = 'reports'
