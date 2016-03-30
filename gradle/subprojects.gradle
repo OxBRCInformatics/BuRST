@@ -12,6 +12,18 @@ subprojects {
             "Implementation-Vendor" : "Oxford University",
     ]
 
+    // Add application capability
+    if(project.hasProperty('mainClass')){
+        apply plugin: 'application'
+
+        manifestAttrs.'Main-Class' = mainClass
+        mainClassName = mainClass
+
+        // If supplied any default args then pass them into run scripts
+        if(project.hasProperty('defaultApplicationJvmArgs'))
+        applicationDefaultJvmArgs = ((String)defaultApplicationJvmArgs).split(',')
+    }
+
     apply plugin: 'java'
     apply plugin: 'jacoco'
     apply plugin: 'maven'
@@ -117,11 +129,11 @@ subprojects {
         pkg {
             repo = 'maven'
             name = project.name
-            userOrg = 'olliefreeman'
+            userOrg = 'oxbrcinformatics'
             licenses = ['Apache-2.0']
-            websiteUrl = 'https://github.com/olliefreeman/BuRST'
-            vcsUrl = 'https://github.com/olliefreeman/BuRST.git'
-            githubRepo = 'olliefreeman/BuRST'
+            websiteUrl = 'https://github.com/jamesrwelch/BuRST'
+            vcsUrl = 'https://github.com/jamesrwelch/BuRST.git'
+            githubRepo = 'jamesrwelch/BuRST'
             githubReleaseNotesFile = 'README.md'
             version {
                 name = project.version
