@@ -18,8 +18,7 @@ See the README for each to find out more.
 To release, use gradle to build and deploy, if you have gradle installed then use as normal if not then use `./gradlew`
 
 1. Firstly use `git flow` to create a new `release` with the next version number.
-1. Change the version in the relevant `gradle.properties` file.
-  * I only increment the module which is actually being updated leading to the 2 builds having different versions.
+1. Change the version in the main `gradle.properties` file.
 1. Commit the update
 1. Finish the `git flow` release and tag with the version number
 1. git checkout the master branch
