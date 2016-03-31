@@ -1,21 +1,21 @@
 language: groovy
-
 jdk:
 - oraclejdk8
-
 services:
 - rabbitmq
-
 install:
-  - export CDIR=`pwd`
-  - git clone --branch v3.2.2-rabbitmq-native3 https://github.com/olliefreeman/grails-rabbitmq-native.git ~/olliefreeman/grails-rabbitmq-native
-  - cd ~/olliefreeman/grails-rabbitmq-native
-  - ./gradlew install
-  - cd $CDIR
-
+- export CDIR=`pwd`
+- git clone --branch v3.2.2-rabbitmq-native3 https://github.com/olliefreeman/grails-rabbitmq-native.git
+  ~/olliefreeman/grails-rabbitmq-native
+- cd ~/olliefreeman/grails-rabbitmq-native
+- "./gradlew install"
+- cd $CDIR
 before_cache:
-  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:
   directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
+notifications:
+  slack:
+    secure: FChGsLT3Xz0ava0Pxpuk3Qgd5EyNK+HkI5TgY3Dhaspke2egocWkgc4Mc7b+MtXdUXGV6s2vxFrqTO+/D49zN8jDPuegpvc+jF+NnrfvjlOuHnsycEOPEA6v9E+9ktrayyJ2We5UqINhEFq94Kw1a/FRzQjwCTGe0GSq3Jkb8MWfNgcMgr440OljXUFgNMXiukj93HVHJAsnq1x8AAXIDjKY1fy6FtAiAqyRhf08AWMPSLytFZ76FxdOWDkO+piYClrWmCkqkLGVJwPZZx91zx7820NK4Fk6PkmqRhYMubjVxQr7SzWA7XzvTDpNyfsPUHOARHkprxoCGq1LQuyviKIPAVKBgZfuK34rAbhMccsf0UsoEqPyr7KzjjmBXkGKBiF8qdPxampZE0ZzGW2l4+i9B9faI+WrnpyB1qSScIA0SUx6CV9G5FsMOf9obu7W7RC6TPeHzuPp3cLSdvvTqRdGMmELmWtElybGANIfzH0SVlv3AVrWXoFsd7wpGySiue2mVhxbKz/WH/rJr8Op+BGOdM4T7zQZ0LaA2kIuuN929B9ppdIabweyK48cQZuawZC5Ymchs8OjODhxy3O7ekmCqxrus9n3OTVrbqs88sUQ5WA5tzesGYkmTEJIEdeqxXLIlrDzlj+yjWCB7cwLHgrS9adqL+pPsr1F1DBmmrs=
