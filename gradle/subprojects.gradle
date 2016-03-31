@@ -19,9 +19,22 @@ subprojects {
         manifestAttrs.'Main-Class' = mainClass
         mainClassName = mainClass
 
+        applicationDefaultJvmArgs = ["-DapplicationVersion=${version}"]
+
         // If supplied any default args then pass them into run scripts
-        if(project.hasProperty('defaultApplicationJvmArgs'))
-        applicationDefaultJvmArgs = ((String)defaultApplicationJvmArgs).split(',')
+        if (project.hasProperty('defaultApplicationJvmArgs'))
+            applicationDefaultJvmArgs += ((String) defaultApplicationJvmArgs).split(',')
+
+        installDist {
+            if(System.env.FILE_RECEIVER_INSTALL_DIR){
+                destinationDir = file(System.env.BURST_INSTALL_DIR)
+            }
+
+            outputs.upToDateWhen{ false}
+            doLast{
+                logger.quiet "Installed application to {}", destinationDir
+            }
+        }
     }
 
     apply plugin: 'java'
