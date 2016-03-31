@@ -1,3 +1,5 @@
+import java.util.concurrent.TimeUnit
+
 subprojects {
 
     /**
@@ -44,6 +46,11 @@ subprojects {
 
     jacoco {
         toolVersion = '+'
+    }
+
+    repositories {
+        mavenLocal()
+        jcenter()
     }
 
     apply from: "$rootDir/dependencies.gradle"
@@ -161,6 +168,33 @@ subprojects {
     }
 
     afterEvaluate {
+
+        configurations.all {
+
+            // check for updates every build
+            resolutionStrategy.cacheChangingModulesFor 0, TimeUnit.SECONDS
+
+            resolutionStrategy.force "org.hibernate:hibernate-core:$hibernateVersion"
+
+            resolutionStrategy.eachDependency {DependencyResolveDetails details ->
+                if (details.requested.group == 'org.postgresql' && details.requested.name == 'postgresql') {
+                    logger.info "Config {} altering {} to {}", it.name, details.requested, postgresJdbcVersion
+                    details.useVersion postgresJdbcVersion
+                }
+                if (details.requested.group == 'org.codehaus.groovy') {
+                    logger.info "Config {} altering {} to {}", it.name, details.requested, groovyVersion
+                    details.useVersion groovyVersion
+                }
+                if (details.requested.group == 'ch.qos.logback') {
+                    logger.info "Config {} altering {} to {}", it.name, details.requested, logbackVersion
+                    details.useVersion logbackVersion
+                }
+                if (details.requested.group == 'org.slf4j') {
+                    logger.info "Config {} altering {} to {}", it.name, details.requested, slf4jVersion
+                    details.useVersion slf4jVersion
+                }
+            }
+        }
 
         /*
          * Set up compile tasks to use default encoding and other compile options.
