@@ -1,7 +1,6 @@
 package ox.softeng.burst.services;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +8,11 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import ox.softeng.burst.domain.Message;
-import ox.softeng.burst.domain.Severity;
+import ox.softeng.burst.domain.SeverityEnum;
 
 @XmlRootElement(name="message")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -28,7 +26,7 @@ public class MessageDTO implements Serializable{
     private OffsetDateTime dateTimeCreated;
 
     @XmlElement(required=true)
-    private Severity severity;
+    private SeverityEnum severity;
 
     @XmlElement(required=true)
     private String source;
@@ -56,7 +54,7 @@ public class MessageDTO implements Serializable{
 
     public Message generateMessage()
     {
-        Message msg = new Message(this.source, this.details, this.severity, dateTimeCreated);
+        Message msg = new Message(this.source, this.details, this.getSeverity(), dateTimeCreated);
         topics.forEach(msg::addTopic);
         if(metadata != null)
         {
@@ -118,12 +116,12 @@ public class MessageDTO implements Serializable{
     }
 
 
-    public Severity getSeverity() {
+    public SeverityEnum getSeverity() {
         return severity;
     }
 
 
-    public void setSeverity(Severity severity) {
+    public void setSeverity(SeverityEnum severity) {
         this.severity = severity;
     }
 

@@ -1,10 +1,9 @@
 package ox.softeng.burst.services;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Properties;
 
-import javax.activation.*;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -13,7 +12,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 
 import ox.softeng.burst.domain.Frequency;
@@ -31,7 +29,6 @@ public class ReportScheduler implements Runnable{
 
 	
 	
-	
 	public ReportScheduler(EntityManagerFactory emf, Properties props)
 	{
 		this.entityManagerFactory = emf;
@@ -43,9 +40,10 @@ public class ReportScheduler implements Runnable{
 	
 	@Override
 	public void run() {
+		//System.out.println("Running version 1.1.2-SNAPSHOT...");
 		System.out.println("Generating reports...");
 
-		LocalDateTime now = LocalDateTime.now();
+		OffsetDateTime now = OffsetDateTime.now();
 		
 		
 		// First we find all the subscriptions where the "next time" is less than now
@@ -58,57 +56,74 @@ public class ReportScheduler implements Runnable{
 		System.out.println("no. of active subscriptions: " + dueSubscriptions.size());
 		for(Subscription s : dueSubscriptions)
 		{
-			// For each of those, we find all the matching messages
-			Severity severity = s.getSeverity();
-			Frequency frequency = s.getFrequency();
-			User u = s.getSubscriber();
-			System.out.println("user email:" + u.getEmailAddress());
-			
-			EntityManager msgEm = entityManagerFactory.createEntityManager();
-			TypedQuery<ox.softeng.burst.domain.Message> msgQuery = msgEm.createNamedQuery("Message.MatchedMessages", ox.softeng.burst.domain.Message.class);
-			msgQuery.setParameter("dateNow", now);
-			msgQuery.setParameter("lastSentDate", s.getLastScheduledRun());
-			msgQuery.setParameter("severity", severity.ordinal());
-			//msgQuery.setParameter("topics", s.getTopics());
-			//msgQuery.setParameter("topicsSize", s.getTopics().size());
-			List<ox.softeng.burst.domain.Message> matchedMessages = msgQuery.getResultList();
-			System.out.println("matched messages: " + matchedMessages.size());
-
-			
-			String emailContent = "";
-			int count = 0;
-			for(ox.softeng.burst.domain.Message msg : matchedMessages)
+			System.out.println("Calculating number of topics...");
+			if(s.getTopics().size() == 0)
 			{
-				System.out.println("message topics size: " + msg.getTopics().size());
-				System.out.println("subscription topics size: " + s.getTopics().size());
-				// Now we ensure the subscribed topics are a subset of the message topics
-				// Can't get this working within the query itself
-				if(msg.getTopics().containsAll(s.getTopics()))
+				System.out.println("Subscription " + s.getId() + " has no registered topics!");
+			}
+			else
+			{
+				// For each of those, we find all the matching messages
+				Severity severity = s.getSeverity();
+				//Frequency frequency = s.getFrequency();
+				User u = s.getSubscriber();
+				System.out.println("user email:" + u.getEmailAddress());
+				
+				EntityManager msgEm = entityManagerFactory.createEntityManager();
+				System.out.println("Created entity manager");
+				TypedQuery<ox.softeng.burst.domain.Message> msgQuery = msgEm.createNamedQuery("Message.MatchedMessages", ox.softeng.burst.domain.Message.class);
+				
+				System.out.println("Setting date now " + now.toString());
+				msgQuery.setParameter("dateNow", now);
+				System.out.println("Setting last run date " + s.getLastScheduledRun().toString());
+				msgQuery.setParameter("lastSentDate", s.getLastScheduledRun());
+				System.out.println("Setting severity: " + severity.getSeverity().ordinal());
+				msgQuery.setParameter("severity", severity.getSeverity().ordinal());
+				//msgQuery.setParameter("topics", s.getTopics());
+				//msgQuery.setParameter("topicsSize", s.getTopics().size());
+				List<ox.softeng.burst.domain.Message> matchedMessages = msgQuery.getResultList();
+				System.out.println("Retrieved matched messages");
+				System.out.println("Size: " + matchedMessages.size());
+				System.out.println("matched messages: " + matchedMessages.size());
+	
+				
+				String emailContent = "";
+				int count = 0;
+				for(ox.softeng.burst.domain.Message msg : matchedMessages)
 				{
-					// We send a message with the concatenation of all the messages
-					emailContent += msg.getMessage();
-					emailContent += "\n\n";
-					count ++;
-				}					
-			}
-			System.out.println("topic matched messages: " + matchedMessages.size());
-
-			if(count > 0)
-			{
-				sendMessage(s.getSubscriber().getEmailAddress(),  "Genomics England reporting message", emailContent);
-			}
-			
-			// Then we re-calculate the "last sent" and "next send" timestamps and update the record 
-			s.setLastScheduledRun(now);
-			s.calculateNextScheduledRun();
-			EntityManager subEm = entityManagerFactory.createEntityManager();
-			subEm.getTransaction().begin();
-			subEm.merge(s);
-			subEm.getTransaction().commit();
-			
-			subEm.close();
-			msgEm.close();
-			
+					System.out.println("message topics size: " + msg.getTopics().size());
+					System.out.println("subscription topics size: " + s.getTopics().size());
+					// Now we ensure the subscribed topics are a subset of the message topics
+					// Can't get this working within the query itself
+					if(msg.getTopics().containsAll(s.getTopics()))
+					{
+						// We send a message with the concatenation of all the messages
+						emailContent += msg.getMessage();
+						emailContent += "\n\n";
+						count ++;
+					}					
+				}
+				System.out.println("topic matched messages: " + matchedMessages.size());
+	
+				if(count > 0)
+				{
+					System.out.println("Sending an email to: " + s.getSubscriber().getEmailAddress());
+					System.out.println("Content: ");
+					System.out.println(emailContent);
+					sendMessage(s.getSubscriber().getEmailAddress(),  "Genomics England reporting message", emailContent);
+				}
+				
+				// Then we re-calculate the "last sent" and "next send" timestamps and update the record 
+				s.setLastScheduledRun(now);
+				s.calculateNextScheduledRun();
+				EntityManager subEm = entityManagerFactory.createEntityManager();
+				subEm.getTransaction().begin();
+				subEm.merge(s);
+				subEm.getTransaction().commit();
+				
+				subEm.close();
+				msgEm.close();
+			}			
 		}
 		em.close();
 
@@ -144,8 +159,16 @@ public class ReportScheduler implements Runnable{
 		// Get the default Session object.
 		Session session = Session.getDefaultInstance(properties);
 		String protocol = "smtp";
-		properties.put("mail." + protocol + ".auth", "true");
-		properties.put("mail.smtp.starttls.enable", "true");
+		if(smtpUsername == null || "".equals(smtpUsername))
+		{
+			System.out.println("sending without authentication...");
+			properties.put("mail." + protocol + ".auth", "false");
+		}
+		else{
+			System.out.println("setting authentication method...");
+			properties.put("mail." + protocol + ".auth", "true");
+			properties.put("mail.smtp.starttls.enable", "true");
+		}
 		try{
 			Transport t = session.getTransport(protocol);
 			// Create a default MimeMessage object.
@@ -160,7 +183,13 @@ public class ReportScheduler implements Runnable{
 			message.setText(contents);
 			// Send message
 		    try {
-		        t.connect(smtpUsername, smtpPassword);
+				if(smtpUsername == null || "".equals(smtpUsername))
+				{
+					t.connect();
+				}
+				else{
+					t.connect(smtpUsername, smtpPassword);
+				}
 		        t.sendMessage(message, message.getAllRecipients());
 		    } finally {
 		        t.close();

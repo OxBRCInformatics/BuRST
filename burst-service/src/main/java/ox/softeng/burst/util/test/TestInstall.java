@@ -2,6 +2,7 @@ package ox.softeng.burst.util.test;
 
 import ox.softeng.burst.domain.Message;
 import ox.softeng.burst.domain.Severity;
+import ox.softeng.burst.domain.SeverityEnum;
 import ox.softeng.burst.domain.User;
 
 import javax.persistence.EntityManager;
@@ -25,14 +26,14 @@ public class TestInstall {
 		List<String> topicStrings = Arrays.asList("topic 1","topic 2", "topic 3");
 		
 		
-		User u = new User("James", "Welch", "jamesrwelch@gmail.com");
+		User u = new User("James", "Welch", "jamesrwelch@gmail.com", "Oxford");
 		entityManager.getTransaction().begin();
 		entityManager.persist(u);
 		for(String t : topicStrings)
 		{
 			entityManager.persist(t);
 		}
-		Message m = new Message("Source System", "Message Details...", Severity.ERROR, OffsetDateTime.now(ZoneId.of("UTC")));
+		Message m = new Message("Source System", "Message Details...", SeverityEnum.ERROR, OffsetDateTime.now(ZoneId.of("UTC")));
 		m.addTopic("topic 3");
 		entityManager.merge(m);
 		entityManager.getTransaction().commit();

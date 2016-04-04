@@ -1,7 +1,6 @@
 package ox.softeng.burst.domain;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -18,14 +17,12 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -61,7 +58,7 @@ public class Message implements Serializable{
     protected OffsetDateTime dateTimeReceived;
 
     @Enumerated(EnumType.STRING)
-    protected Severity severity;
+    protected SeverityEnum severity;
 
     protected int severityNumber;
 
@@ -84,7 +81,7 @@ public class Message implements Serializable{
         metadata = new ArrayList<>();
     }
 
-    public Message(String source, String message, Severity severity, OffsetDateTime dateTimeCreated)
+    public Message(String source, String message, SeverityEnum severity, OffsetDateTime dateTimeCreated)
     {
         dateTimeReceived = OffsetDateTime.now(ZoneId.of("UTC"));
         this.source = source;
@@ -115,11 +112,11 @@ public class Message implements Serializable{
     }
 
 
-    public Severity getSeverity() {
+    public SeverityEnum getSeverity() {
         return severity;
     }
 
-    public void setSeverity(Severity severity) {
+    public void setSeverity(SeverityEnum severity) {
         this.severity = severity;
     }
 
@@ -162,6 +159,9 @@ public class Message implements Serializable{
 
     @PrePersist
     public void updateSeverityNumber() {
-        this.severityNumber = severity.ordinal();
+        if(severity != null)
+        {
+        	this.severityNumber = severity.ordinal();
+        }
     }
 }

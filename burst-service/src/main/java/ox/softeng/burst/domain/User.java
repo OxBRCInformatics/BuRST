@@ -16,20 +16,22 @@ public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id = null;
 
     protected String firstName;
     protected String lastName;
+    protected String organisation;
 
     @Column(unique=true)
     protected String emailAddress;
     
-    public User(String firstName, String lastName, String emailAddress)
+    public User(String firstName, String lastName, String emailAddress, String organisation)
     {
     	this.firstName = firstName;
     	this.lastName = lastName;
     	this.emailAddress = emailAddress;
+    	this.organisation = organisation;
     }
     
     public User()
@@ -63,6 +65,14 @@ public class User implements Serializable {
 
 	public Long getId() {
 		return id;
+	}
+
+	public String getOrganisation() {
+		return organisation;
+	}
+
+	public void setOrganisation(String organisation) {
+		this.organisation = organisation;
 	}
     
 	

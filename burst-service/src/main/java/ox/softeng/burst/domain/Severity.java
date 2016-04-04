@@ -1,8 +1,35 @@
 package ox.softeng.burst.domain;
 
-// Taken from: 
-// https://logging.apache.org/log4j/2.0/log4j-core/apidocs/org/apache/logging/log4j/core/net/Severity.html
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
-public enum Severity {
-	DEBUG, INFORMATIONAL, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY
+@Entity
+@Table(schema="Subscription")
+public class Severity {
+
+	@Id
+	@Enumerated(EnumType.STRING)
+	private SeverityEnum severity;
+
+	public Severity(SeverityEnum severityEnum) {
+		this.severity = severityEnum;
+	}
+
+	public Severity()
+	{
+		this.severity = null;
+	}
+	
+	public SeverityEnum getSeverity() {
+		return severity;
+	}
+
+	public void setSeverity(SeverityEnum severity) {
+		this.severity = severity;
+	}
+	
+	
 }
