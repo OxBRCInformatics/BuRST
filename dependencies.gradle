@@ -18,25 +18,12 @@ dependencies {
     compile group: 'org.slf4j', name: 'jul-to-slf4j', version: slf4jVersion
     compile group: 'org.slf4j', name: 'jcl-over-slf4j', version: slf4jVersion
 
-    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion, transitive: false
-    testRuntime group: 'ch.qos.logback', name: 'logback-core', version: logbackVersion
+    runtime group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion, transitive: false
+    runtime group: 'ch.qos.logback', name: 'logback-core', version: logbackVersion
 
     /**
      * Testing
      */
     testCompile group: 'org.spockframework', name: 'spock-core', version: '1.0-groovy-2.4'
     testCompile group: 'junit', name: 'junit', version: '4.12'
-}
-
-configurations.all {
-    // check for updates every build
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-
-    resolutionStrategy.eachDependency {DependencyResolveDetails details ->
-        if (details.requested.group == 'org.postgresql' && details.requested.name == 'postgresql'
-                && details.requested.version == '9.4.1207.jre7') {
-            //prefer different version which contains some necessary fixes
-            details.useVersion project.postgresJdbcVersion
-        }
-    }
 }

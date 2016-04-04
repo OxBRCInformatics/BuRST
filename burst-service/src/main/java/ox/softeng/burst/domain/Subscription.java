@@ -1,27 +1,28 @@
 package ox.softeng.burst.domain;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Column;
 
+import org.hibernate.annotations.CollectionId;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.Type;
 
 
 @Entity
@@ -35,26 +36,36 @@ public class Subscription implements Serializable{
 	private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id = null;
 	
 	@ManyToOne
 	protected User subscriber;
 
-	@Enumerated(EnumType.STRING)
+	@ManyToOne
+	@JoinColumn(name="frequency")
 	protected Frequency frequency;
 	
 	
 	@Fetch(FetchMode.JOIN)
 	@ElementCollection(fetch=FetchType.EAGER)
 	@CollectionTable(schema="Subscription")
+    @CollectionId(
+            columns = @Column(name="topics_id"), 
+            type=@Type(type="long"), 
+            generator = "identity"
+        )
 	protected List<String> topics;
 	
-	@Enumerated(EnumType.STRING)
+	@ManyToOne
+	@JoinColumn(name="severity")
 	protected Severity severity;
 
-	protected LocalDateTime nextScheduledRun;
-	protected LocalDateTime lastScheduledRun;
+	@Column(name="NextScheduledRun")
+	protected OffsetDateTime nextScheduledRun;
+	
+	@Column(name="LastScheduledRun")
+	protected OffsetDateTime lastScheduledRun;
 	
 	public Subscription(User subscriber, Frequency frequency, Severity severity)
 	{
@@ -64,8 +75,8 @@ public class Subscription implements Serializable{
 		
 		topics = new ArrayList<String>();
 		
-		nextScheduledRun = LocalDateTime.now();
-		switch(frequency)
+		nextScheduledRun = OffsetDateTime.now();
+		switch(frequency.getFrequency())
 		{
 			case IMMEDIATE:
 				nextScheduledRun.plusMinutes(1);
@@ -133,28 +144,28 @@ public class Subscription implements Serializable{
 		this.severity = severity;
 	}
 
-	public LocalDateTime getNextScheduledRun() {
+	public OffsetDateTime getNextScheduledRun() {
 		return nextScheduledRun;
 	}
 
-	public void setNextScheduledRun(LocalDateTime nextScheduledRun) {
+	public void setNextScheduledRun(OffsetDateTime nextScheduledRun) {
 		this.nextScheduledRun = nextScheduledRun;
 	}
 
-	public LocalDateTime getLastScheduledRun() {
+	public OffsetDateTime getLastScheduledRun() {
 		return lastScheduledRun;
 	}
 
-	public void setLastScheduledRun(LocalDateTime lastScheduledRun) {
+	public void setLastScheduledRun(OffsetDateTime lastScheduledRun) {
 		this.lastScheduledRun = lastScheduledRun;
 	}
 
 	public void calculateNextScheduledRun() {
 		if(lastScheduledRun == null)
 		{
-			lastScheduledRun = LocalDateTime.now();
+			lastScheduledRun = OffsetDateTime.now();
 		}
-		switch(getFrequency())
+		switch(getFrequency().getFrequency())
 		{
 			case IMMEDIATE:
 				setNextScheduledRun(lastScheduledRun.plusMinutes(1));
