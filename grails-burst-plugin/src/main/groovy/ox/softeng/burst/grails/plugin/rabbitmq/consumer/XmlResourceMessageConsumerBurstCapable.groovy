@@ -30,6 +30,7 @@ abstract class XmlResourceMessageConsumerBurstCapable<R> extends ResourceMessage
             handleException(ex, messageContext)
         } catch (Exception ex) {
             handleException(new BurstException('BURST12', 'Unhandled Exception', ex), messageContext)
+            ex.printStackTrace()
         }
         respond INTERNAL_SERVER_ERROR, body
     }
