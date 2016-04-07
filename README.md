@@ -1,8 +1,8 @@
 # BuRST - Basic Report Subscription Tool
 
-[![Build Status](https://travis-ci.org/olliefreeman/BuRST.svg?branch=develop)](https://travis-ci.org/olliefreeman/BuRST)
-[![Master](http://img.shields.io/badge/master-1.0-green.svg)](https://github.com/olliefreeman/BuRST/tree/master)
-[![License](http://img.shields.io/badge/license-MIT_License-lightgrey.svg)](https://github.com/olliefreeman/BuRST/blob/develop/LICENSE)
+[![Build Status](https://travis-ci.org/jamesrwelch/BuRST.svg?branch=develop)](https://travis-ci.org/jamesrwelch/BuRST)
+[![Master](http://img.shields.io/badge/master-1.1-green.svg)](https://github.com/jamesrwelch/BuRST/tree/master)
+[![License](http://img.shields.io/badge/license-MIT_License-lightgrey.svg)](https://github.com/jamesrwelch/BuRST/blob/develop/LICENSE)
 
 ## What is this
 
