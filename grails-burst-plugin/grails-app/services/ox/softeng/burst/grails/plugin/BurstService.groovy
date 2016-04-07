@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.MessageSource
 import org.springframework.validation.Errors
-import ox.softeng.burst.domain.Severity
+import ox.softeng.burst.domain.SeverityEnum
 import ox.softeng.burst.grails.plugin.exception.BurstException
 import ox.softeng.burst.services.MessageDTO
 
@@ -50,15 +50,15 @@ class BurstService {
         broadcastException(ex, appName, topics, metadataMap)
     }
 
-    void broadcastException(BurstException ex, String source, List<String> topics, Map<String, String> metadataMap = [:]) {
+    void broadcastException(BurstException ex, String exSource, List<String> exTopics, Map<String, String> metadataMap = [:]) {
         broadcastMessage {
-            it.dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
-            it.severity = Severity.CRITICAL
-            it.details = ex.getMessage()
-            it.source = source
-            it.topics = topics
+            dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
+            severity = SeverityEnum.CRITICAL
+            details = ex.getMessage()
+            source = exSource
+            topics = exTopics
             metadataMap.each {k, v ->
-                it.addToMetadata(k, v ?: 'unknown')
+                addToMetadata(k, v ?: 'unknown')
             }
             it
         }
@@ -68,21 +68,21 @@ class BurstService {
         broadcastErrors(errors, errorCode, appName, topics, metadataMap)
     }
 
-    void broadcastErrors(Errors errors, String errorCode, String source, List<String> topics, Map<String, String> metadataMap = [:]) {
-        String details = "$errorCode - Errors while trying to process '${errors.objectName}' resource::\n"
+    void broadcastErrors(Errors errors, String errorCode, String exSource, List<String> exTopics, Map<String, String> metadataMap = [:]) {
+        String exDetails = "$errorCode - Errors while trying to process '${errors.objectName}' resource::\n"
 
         errors.allErrors.each {error ->
-            details += "  ${messageSource.getMessage(error, Locale.default)}\n"
+            exDetails += "  ${messageSource.getMessage(error, Locale.default)}\n"
         }
 
         broadcastMessage {
-            it.dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
-            it.severity = Severity.ERROR
-            it.details = details
-            it.source = source
-            it.topics = topics
+            dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
+            severity = SeverityEnum.ERROR
+            details = exDetails
+            source = exSource
+            topics = exTopics
             metadataMap.each {k, v ->
-                it.addToMetadata(k, v ?: 'unknown')
+                addToMetadata(k, v ?: 'unknown')
             }
             it
         }
