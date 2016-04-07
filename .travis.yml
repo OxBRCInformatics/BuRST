@@ -21,7 +21,7 @@ notifications:
   slack:
     secure: FChGsLT3Xz0ava0Pxpuk3Qgd5EyNK+HkI5TgY3Dhaspke2egocWkgc4Mc7b+MtXdUXGV6s2vxFrqTO+/D49zN8jDPuegpvc+jF+NnrfvjlOuHnsycEOPEA6v9E+9ktrayyJ2We5UqINhEFq94Kw1a/FRzQjwCTGe0GSq3Jkb8MWfNgcMgr440OljXUFgNMXiukj93HVHJAsnq1x8AAXIDjKY1fy6FtAiAqyRhf08AWMPSLytFZ76FxdOWDkO+piYClrWmCkqkLGVJwPZZx91zx7820NK4Fk6PkmqRhYMubjVxQr7SzWA7XzvTDpNyfsPUHOARHkprxoCGq1LQuyviKIPAVKBgZfuK34rAbhMccsf0UsoEqPyr7KzjjmBXkGKBiF8qdPxampZE0ZzGW2l4+i9B9faI+WrnpyB1qSScIA0SUx6CV9G5FsMOf9obu7W7RC6TPeHzuPp3cLSdvvTqRdGMmELmWtElybGANIfzH0SVlv3AVrWXoFsd7wpGySiue2mVhxbKz/WH/rJr8Op+BGOdM4T7zQZ0LaA2kIuuN929B9ppdIabweyK48cQZuawZC5Ymchs8OjODhxy3O7ekmCqxrus9n3OTVrbqs88sUQ5WA5tzesGYkmTEJIEdeqxXLIlrDzlj+yjWCB7cwLHgrS9adqL+pPsr1F1DBmmrs=
 after_success:
-- ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ] && gradle bintrayUpload --info
+- ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ] && ./gradlew bintrayUpload --info
 env:
   global:
     - secure: Optg8kRWxlqwkWbATN0hz3wCvzR6nDPnCZ+SWCmpkhaCf05amdKb8KdpHi3RaJBEabJSm7zU72mrDHmADH9Zyqd1lIKo6V9yYc+5LCB7DGFL6hPTehYMe+aK/eTx/FE8YOEBxtcar8998rSaj+4kZlfB0h66Lin3GiB9PMDup43PIQFF5O2EP7zMmpPd0MRP27UuoHYrf7/8T4KXAPRFmpE21ee0WKXkoEnec+03s7RTgnt8rPd73gU0I/HbYpO2ce28aK1sUmyeqW1RgmoJOMv7QFGI57SRkSJeAWRYAW1ClIrcqhOtjW3YYIaThDD1ZL6EKfYE/j3w9dElhdVJQ+0HIf84UWW9tS5nGzikFxIi+Bu+x+eXwpHUYldRI7jVHgXJktLaGRO68W/KNE+jYPEjrOgZup/mUUzkKEbFxL5BcFpFzPJO8je4sZ1ta/5rRmb9bKJGRV4vW5pcwCqNZKGjWiGKKA/l9+MhHOr1Eq04IM66M48mhMVysRbURfTmhbsVbQO9/fuTzVDQypiwPYV+Ct6KdhcmmETuYJc4SqTz+IctJH9al2UNEWXxipZm8EFi51/EYOPlSB5xLuf11AkDoZARx9rbAmz6b4HvbS0KVpjlV7sCVOEQQIescuRZSAfWiBqIKjQtH9c4hc9JoJcYNxJ8ZwHc3P8T9HrQFOQ=
