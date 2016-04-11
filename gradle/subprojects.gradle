@@ -51,6 +51,8 @@ subprojects {
     repositories {
         mavenLocal()
         jcenter()
+        maven {url "http://dl.bintray.com/oxbrcinformatics/maven"}
+        maven {url "http://dl.bintray.com/olliefreeman/maven"}
     }
 
     apply from: "$rootDir/dependencies.gradle"
