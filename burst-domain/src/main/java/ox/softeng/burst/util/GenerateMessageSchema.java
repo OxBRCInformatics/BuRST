@@ -1,15 +1,14 @@
 package ox.softeng.burst.util;
 
-import java.io.IOException;
-import java.io.StringWriter;
+import ox.softeng.burst.xml.MessageDTO;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.transform.Result;
 import javax.xml.transform.stream.StreamResult;
-
-import ox.softeng.burst.services.MessageDTO;
+import java.io.IOException;
+import java.io.StringWriter;
 
 public class GenerateMessageSchema 
 {

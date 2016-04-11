@@ -9,7 +9,7 @@ import org.springframework.context.MessageSource
 import org.springframework.validation.Errors
 import ox.softeng.burst.domain.SeverityEnum
 import ox.softeng.burst.grails.plugin.exception.BurstException
-import ox.softeng.burst.services.MessageDTO
+import ox.softeng.burst.xml.MessageDTO
 
 import javax.xml.bind.JAXB
 import java.time.OffsetDateTime

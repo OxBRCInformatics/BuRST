@@ -1,8 +1,6 @@
 dependencies {
 
-    compile project(':burst-service'), {
-        transitive = false
-    }
+    compile project(':burst-domain')
     compile group: 'org.grails.plugins', name: 'rabbitmq-native3', version: rabbitmqNative3Version
 
     compile "org.springframework.boot:spring-boot-starter-logging"

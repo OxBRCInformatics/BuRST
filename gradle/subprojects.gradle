@@ -69,7 +69,6 @@ subprojects {
     test {
         group 'testing'
         useJUnit()
-        ignoreFailures = true
         systemProperties(['file.encoding': 'UTF-8'])
         workingDir = rootDir
         maxParallelForks = 20
