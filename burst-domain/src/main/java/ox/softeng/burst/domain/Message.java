@@ -1,30 +1,14 @@
 package ox.softeng.burst.domain;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(schema="Report")
@@ -49,31 +33,23 @@ public class Message implements Serializable{
 
 
     private static final long serialVersionUID = 1L;
-
+    protected OffsetDateTime dateTimeCreated;
+    protected OffsetDateTime dateTimeReceived;
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     protected Long id = null;
-
-    protected OffsetDateTime dateTimeCreated;
-    protected OffsetDateTime dateTimeReceived;
-
+    @Column(length = 10485760)
+    protected String message;
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "message")
+    protected List<Metadata> metadata;
     @Enumerated(EnumType.STRING)
     protected SeverityEnum severity;
-
     protected int severityNumber;
-
     protected String source;
-
-    @Column(length=10485760)
-    protected String message;
-
     @Fetch(FetchMode.JOIN)
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(schema="Report")
     protected List<String> topics;
-
-    @OneToMany(fetch=FetchType.EAGER, cascade = CascadeType.ALL, mappedBy="message")
-    protected List<Metadata> metadata;
 
     public Message()
     {
@@ -92,16 +68,15 @@ public class Message implements Serializable{
         metadata = new ArrayList<>();
     }
 
-    public void addTopic(String topic)
-    {
-        topics.add(topic);
-    }
-
     public void addMetadata(String key, String value)
     {
         metadata.add(new Metadata(key, value, this));
     }
 
+    public void addTopic(String topic)
+    {
+        topics.add(topic);
+    }
 
     public OffsetDateTime getDateTimeCreated() {
         return dateTimeCreated;
@@ -111,6 +86,25 @@ public class Message implements Serializable{
         this.dateTimeCreated = dateCreated;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public List<Metadata> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(List<Metadata> metadata) {
+        this.metadata = metadata;
+    }
 
     public SeverityEnum getSeverity() {
         return severity;
@@ -128,33 +122,12 @@ public class Message implements Serializable{
         this.source = source;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
     public List<String> getTopics() {
         return topics;
     }
 
     public void setTopics(List<String> topics) {
         this.topics = topics;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-
-    public List<Metadata> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(List<Metadata> metadata) {
-        this.metadata = metadata;
     }
 
     @PrePersist

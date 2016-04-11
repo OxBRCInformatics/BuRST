@@ -1,23 +1,21 @@
 package ox.softeng.burst.services;
 
-import com.rabbitmq.client.*;
-
 import ox.softeng.burst.domain.Message;
+import ox.softeng.burst.xml.MessageDTO;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.Properties;
-import java.util.concurrent.TimeoutException;
+import com.rabbitmq.client.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.xml.bind.JAXB;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.concurrent.TimeoutException;
 
 public class RabbitService implements Runnable {
 
-	Connection connection;
 	Channel channel;
+	Connection connection;
 	EntityManagerFactory entityManagerFactory;
 	String rabbitMQQueue;
 

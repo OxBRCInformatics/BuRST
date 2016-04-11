@@ -3,7 +3,6 @@ package ox.softeng.burst.grails.plugin
 import com.budjb.rabbitmq.RabbitContext
 import com.budjb.rabbitmq.consumer.MessageContext
 import com.budjb.rabbitmq.publisher.RabbitMessagePublisher
-import geb.spock.GebSpec
 import grails.test.mixin.integration.Integration
 import grails.transaction.Rollback
 import grails.util.Holders
@@ -113,8 +112,9 @@ class BurstGeneratingTestConsumerTest extends Specification {
         0 * _
 
         and: 'we should have an instance of test'
-        Test.countByNameAndType('test valid', 'test valid')
-
+        Test.withNewSession {
+            Test.countByNameAndType('test valid', 'test valid')
+        }
 
     }
 

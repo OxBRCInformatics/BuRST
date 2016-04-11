@@ -1,4 +1,4 @@
-package ox.softeng.burst.services;
+package ox.softeng.burst.xml;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import java.time.OffsetDateTime;
