@@ -39,6 +39,19 @@ trait BurstCapable {
         burstService.broadcastErrors errors, errorCode, source, topics, metadataMap
     }
 
+    void handleException(BurstException ex, Map<String, String> metadataMap) {
+        String logMsg = "Handling exception inside Burst capable object ${getClass().getCanonicalName()}: ${ex.getMessage()}"
+        if(ex.message.contains('Unhandled Exception'))
+            logger.error(logMsg, ex.cause)
+        else logger.error(logMsg)
+        burstService.broadcastException ex, source, topics, metadataMap
+    }
+
+    void handleErrors(Errors errors, String errorCode, Map<String, String> metadataMap) {
+        logger.warn("Handling error inside Burst capable object {} has {} errors", getClass().getCanonicalName(), errors.errorCount)
+        burstService.broadcastErrors errors, errorCode, source, topics, metadataMap
+    }
+
     void broadcastInformationMessage(String message, String messageId, Map<String, String> metadataMap){
         logger.trace('{} - Sending information message to Burst: {}', messageId, message)
         burstService.broadcastInformationMessage(message, source, getTopics(), metadataMap)
