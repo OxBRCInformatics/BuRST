@@ -26,7 +26,7 @@ trait XmlMessageConsumerBurstCapable extends MessageConsumerBurstCapable {
                                 messageId, messageContext)
                 return respond(NOT_ACCEPTABLE, messageId, messageContext, body)
             }
-            return processMessage(body, messageContext) as GPathResult
+            return processMessage(body,messageId, messageContext) as GPathResult
         } catch (BurstException ex) {
             handleException(ex, messageId, messageContext)
         } catch (Exception ex) {
@@ -43,7 +43,7 @@ trait XmlMessageConsumerBurstCapable extends MessageConsumerBurstCapable {
                                 messageId, messageContext)
                 return respond(NOT_ACCEPTABLE, messageId, messageContext, body)
             }
-            return processMessage(body, messageContext) as String
+            return processMessage(body, messageId, messageContext) as String
         } catch (BurstException ex) {
             handleException(ex, messageId, messageContext)
         } catch (Exception ex) {
@@ -52,5 +52,5 @@ trait XmlMessageConsumerBurstCapable extends MessageConsumerBurstCapable {
         respond INTERNAL_SERVER_ERROR, messageId, messageContext, body
     }
 
-    abstract Object processMessage(Object body, MessageContext messageContext)
+    abstract Object processMessage(Object body, String messageId, MessageContext messageContext)
 }
