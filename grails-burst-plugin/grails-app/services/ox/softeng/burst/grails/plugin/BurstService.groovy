@@ -46,6 +46,20 @@ class BurstService {
         broadcastMessage(new MessageDTO().with(closure))
     }
 
+    void broadcastInformationMessage(String message, String mSource,List<String> mTopics, Map<String, String> metadataMap = [:]){
+        broadcastMessage {
+            dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
+            severity = SeverityEnum.INFORMATIONAL
+            details = message
+            source = mSource
+            topics = mTopics
+            metadataMap.each {k, v ->
+                addToMetadata(k, v ?: 'unknown')
+            }
+            it
+        }
+    }
+
     void broadcastException(BurstException ex, List<String> topics, Map<String, String> metadataMap = [:]) {
         broadcastException(ex, appName, topics, metadataMap)
     }

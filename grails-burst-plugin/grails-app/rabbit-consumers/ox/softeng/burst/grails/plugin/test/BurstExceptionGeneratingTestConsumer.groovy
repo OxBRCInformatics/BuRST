@@ -12,7 +12,7 @@ class BurstExceptionGeneratingTestConsumer implements TypedMessageConsumerBurstC
 
     Class<Test> resource = Test
 
-    String processMessage(String body, MessageContext messageContext) {
+    String processMessage(String body, String messageId,MessageContext messageContext) {
         logger.error('Seeing message "{}", and now ...', body)
         if (body ==~ /Unhandled Exception fail/)
             throw new IllegalArgumentException('Am uncontrollably failing because that\'s what i do')

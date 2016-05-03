@@ -6,8 +6,12 @@ import groovy.util.slurpersupport.GPathResult
 import groovy.xml.MarkupBuilder
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
+import ox.softeng.burst.domain.SeverityEnum
 import ox.softeng.burst.grails.plugin.BurstCapable
 import ox.softeng.burst.grails.plugin.exception.BurstException
+
+import java.time.OffsetDateTime
+import java.time.ZoneId
 
 /**
  * @since 01/03/2016
@@ -18,18 +22,23 @@ trait MessageConsumerBurstCapable extends BurstCapable {
         [MimeType.ALL]
     }
 
-    def respond(HttpStatus status, def object) {
+    def respond(HttpStatus status, String messageId, MessageContext messageContext, def object) {
+        respond(status, messageId, object, getDefaultMetadata(messageContext))
+    }
 
-        if (object instanceof Number) {
-            return status.value()
-        }
+    def respond(HttpStatus status, String messageId, MessageContext messageContext, def object, Map<String, String> metadataMap) {
+        respond(status, messageId, object, getDefaultMetadata(messageContext) + metadataMap)
+    }
+
+    def respond(HttpStatus status, String messageId, def object, Map<String, String> metadataMap) {
 
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
         xml.response "${status.value()} ${status.reasonPhrase}"
 
         String response = writer.toString()
-        logger.debug('Response: {}', response)
+        logger.debug('{} - Response: {}', messageId, response)
+        broadcastInformationMessage(response, messageId,metadataMap)
 
         if (object instanceof GPathResult) return new XmlSlurper().parseText(response)
         try {
@@ -45,7 +54,7 @@ trait MessageConsumerBurstCapable extends BurstCapable {
     }
 
     Map<String, String> getDefaultMetadata(MessageContext messageContext) {
-        [
+        Map md = [
                 queue      : messageContext.envelope.routingKey,
                 consumerTag: messageContext.consumerTag,
                 messageId  : messageContext.properties.messageId,
@@ -53,41 +62,25 @@ trait MessageConsumerBurstCapable extends BurstCapable {
                 application: messageContext.properties.appId
 
         ]
+        messageContext.properties.headers.each {k, v ->
+            md.put(k, v as String)
+        }
+        md
     }
 
-    void handleException(BurstException ex, MessageContext messageContext) {
-        super.handleException(ex, getDefaultMetadata(messageContext))
+    void handleException(BurstException ex, String messageId, MessageContext messageContext) {
+        handleException(ex, messageId, getDefaultMetadata(messageContext))
     }
 
-    void handleErrors(Errors errors, String errorCode, MessageContext messageContext) {
-        super.handleErrors(errors, errorCode, getDefaultMetadata(messageContext))
+    void handleErrors(Errors errors, String errorCode, String messageId, MessageContext messageContext) {
+        handleErrors(errors, errorCode, messageId, getDefaultMetadata(messageContext))
     }
 
-    void handleException(BurstException ex, MessageContext messageContext, Map<String, String> metadataMap) {
-        super.handleException(ex, getDefaultMetadata(messageContext) + metadataMap)
+    void handleException(BurstException ex, String messageId, MessageContext messageContext, Map<String, String> metadataMap) {
+        handleException(ex, messageId, getDefaultMetadata(messageContext) + metadataMap)
     }
 
-    void handleErrors(Errors errors, String errorCode, MessageContext messageContext, Map<String, String> metadataMap) {
-        super.handleErrors(errors, errorCode, getDefaultMetadata(messageContext) + metadataMap)
-    }
-
-    /*
-    Use the methods which take a message context
-     */
-
-    @Deprecated
-    @Override
-    void handleErrors(Errors errors, String errorCode, Map<String, String> metadataMap) {
-        super.handleErrors(errors, errorCode, metadataMap)
-    }
-
-    /*
-    Use the methods which take a message context
-     */
-
-    @Deprecated
-    @Override
-    void handleException(BurstException ex, Map<String, String> metadataMap) {
-        super.handleException(ex, metadataMap)
+    void handleErrors(Errors errors, String errorCode, String messageId, MessageContext messageContext, Map<String, String> metadataMap) {
+        handleErrors(errors, errorCode, messageId, getDefaultMetadata(messageContext) + metadataMap)
     }
 }

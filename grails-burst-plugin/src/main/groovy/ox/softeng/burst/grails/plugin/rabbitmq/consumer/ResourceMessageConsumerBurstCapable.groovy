@@ -21,30 +21,31 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
     abstract Map<String, String> extractRelevantMetadataFromGeneratedInstance(R instance)
 
     String handleMessage(String body, MessageContext messageContext) {
+        String messageId = messageContext.properties.messageId ?: messageContext.consumerTag
         try {
             if (!acceptedContentType(messageContext)) {
                 handleException(new UnacceptableMimeTypeException('BURST08', rabbitConfig.queue, messageContext.properties.contentType),
-                                messageContext)
-                return respond(NOT_ACCEPTABLE, body)
+                                messageId, messageContext)
+                return respond(NOT_ACCEPTABLE, messageId, messageContext, body)
             }
-            return processMessage(body, messageContext) as String
+            return processMessage(body, messageId, messageContext) as String
         } catch (BurstException ex) {
-            handleException(ex, messageContext)
+            handleException(ex, messageId, messageContext)
         } catch (Exception ex) {
-            handleException(new BurstException('BURST09', 'Unhandled Exception', ex), messageContext)
+            handleException(new BurstException('BURST09', 'Unhandled Exception', ex), messageId, messageContext)
         }
-        respond INTERNAL_SERVER_ERROR, body
+        respond INTERNAL_SERVER_ERROR, messageId, messageContext, body
     }
 
     /**
      * Default process action is to save the object.
      * Response will be in the correct type as XML with a HTTP status code and reason in the body.
      */
-    def processMessage(def body, MessageContext messageContext) {
-        logger.debug('{} - Processing message body of type "{}"', messageContext.properties.messageId?:messageContext.consumerTag, body.getClass())
-        def result = save(body, messageContext)
-        if(result instanceof HttpStatus) return respond(result, body)
-        respond CREATED, body
+    def processMessage(def body, String messageId, MessageContext messageContext) {
+        logger.debug('{} - Processing message body of type "{}"', messageId, body.getClass())
+        def result = save(body, messageId, messageContext)
+        if (result instanceof HttpStatus) return respond(result, messageId, messageContext, body)
+        respond CREATED, messageId, messageContext, body, extractRelevantMetadataFromGeneratedInstance(result as R)
     }
 
     /**
@@ -53,41 +54,43 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
      * @param messageContext
      * @return HTTPStatus if failed or the resource instance if created and saved
      */
-    def save(def object, MessageContext messageContext) {
-        logger.debug('{} - Saving new object with content-type "{}"', messageContext.properties.messageId?:messageContext.consumerTag,
+    def save(def object, String messageId, MessageContext messageContext) {
+        logger.debug('{} - Saving new object with content-type "{}"', messageId,
                      messageContext.properties.contentType)
-        def instance = createResource object, messageContext
+        def instance = createResource object, messageId, messageContext
 
         // Binding failed so we have nothing to extract for metadata
         if (instance instanceof Errors) {
-            handleErrors(instance, 'BURSTVAL01', messageContext)
+            handleErrors(instance, 'BURSTVAL01', messageId, messageContext)
             return UNPROCESSABLE_ENTITY
         }
 
-        logger.debug('{} - Instance of type "{}" created', messageContext.properties.messageId?:messageContext.consumerTag, instance.class)
+        logger.debug('{} - Instance of type "{}" created', messageId, instance.class)
 
         instance.validate()
         // If errors here then object has data but does not pass validation constraints
         if (instance.hasErrors()) {
-            handleErrors instance.errors as Errors, 'BURSTVAL02', messageContext, extractRelevantMetadataFromGeneratedInstance(instance as R)
+            handleErrors instance.errors as Errors, 'BURSTVAL02', messageId, messageContext,
+                         extractRelevantMetadataFromGeneratedInstance(instance as R)
             return UNPROCESSABLE_ENTITY
         }
-        logger.debug('{} - Instance validated', messageContext.properties.messageId?:messageContext.consumerTag)
+        logger.debug('{} - Instance validated', messageId)
 
         try {
             saveResource instance as R
         } catch (RuntimeException exception) {
             BurstException burstException = new BurstException('BURST10', 'Failed to save resource', exception)
-            handleException(burstException, messageContext, extractRelevantMetadataFromGeneratedInstance(instance as R))
+            handleException(burstException, messageId, messageContext, extractRelevantMetadataFromGeneratedInstance(instance as R))
             return INTERNAL_SERVER_ERROR
         }
 
-        logger.debug('{} - Instance saved', messageContext.properties.messageId?:messageContext.consumerTag)
+        logger.debug('{} - Instance saved', messageId)
 
         instance
     }
 
-    def createResource(def objectToBind, MessageContext context) {
+    def createResource(def objectToBind, String messageId, MessageContext context) {
+        logger.debug('{} - Creating resource', messageId)
         R instance = getType().newInstance()
         def result = bindData instance, objectToBind, context
         if (result) return result
@@ -105,6 +108,6 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
     }
 
     Class<R> getType() {
-        ((ParameterizedType)this.class.genericSuperclass.find {it instanceof ParameterizedType}).actualTypeArguments[0] as Class
+        ((ParameterizedType) this.class.genericSuperclass.find {it instanceof ParameterizedType}).actualTypeArguments[0] as Class
     }
 }

@@ -19,19 +19,19 @@ abstract class XmlResourceMessageConsumerBurstCapable<R> extends ResourceMessage
     }
 
     GPathResult handleMessage(GPathResult body, MessageContext messageContext) {
+        String messageId = messageContext.properties.messageId ?: messageContext.consumerTag
         try {
             if (!acceptedContentType(messageContext)) {
                 handleException(new UnacceptableMimeTypeException('BURST11', rabbitConfig.queue, messageContext.properties.contentType),
-                                messageContext)
-                return respond(NOT_ACCEPTABLE, body)
+                                messageId, messageContext)
+                return respond(NOT_ACCEPTABLE, messageId, messageContext, body) as GPathResult
             }
-            return processMessage(body, messageContext) as GPathResult
+            return processMessage(body, messageId, messageContext) as GPathResult
         } catch (BurstException ex) {
-            handleException(ex, messageContext)
+            handleException(ex, messageId, messageContext)
         } catch (Exception ex) {
-            handleException(new BurstException('BURST12', 'Unhandled Exception', ex), messageContext)
-            ex.printStackTrace()
+            handleException(new BurstException('BURST12', 'Unhandled Exception', ex), messageId, messageContext)
         }
-        respond INTERNAL_SERVER_ERROR, body
+        respond INTERNAL_SERVER_ERROR, messageId, messageContext, body
     }
 }
