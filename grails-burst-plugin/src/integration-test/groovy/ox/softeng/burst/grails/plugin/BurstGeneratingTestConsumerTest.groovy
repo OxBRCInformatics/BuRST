@@ -108,7 +108,7 @@ class BurstGeneratingTestConsumerTest extends Specification {
         sleep(2000)
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
-        0 * burstListeningConsumer.handleMessage(_ as String, _ as MessageContext)
+        1 * burstListeningConsumer.handleMessage({it.contains('response&gt;201')} as String, _ as MessageContext)
         0 * _
 
         and: 'we should have an instance of test'
