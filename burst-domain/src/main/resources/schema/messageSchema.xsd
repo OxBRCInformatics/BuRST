@@ -1,6 +1,14 @@
 <?xml version="1.0" standalone="yes"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0">
-	
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" version="1.0"
+					 targetNamespace="http://www.burst.softeng.ox/1.0.1" xmlns="http://www.burst.softeng.ox/1.0.1" elementFormDefault="qualified"
+					 jaxb:version="2.0">
+	<xs:annotation>
+		<xs:appinfo>
+			<jaxb:schemaBindings>
+				<jaxb:package name="ox.softeng.burst.domain"/>
+			</jaxb:schemaBindings>
+		</xs:appinfo>
+	</xs:annotation>
 	<xs:element name="message" type="messageMsg">
 		<xs:annotation>
 			<xs:documentation>
@@ -30,6 +38,13 @@
 				<xs:annotation>
 					<xs:documentation>
 						The system or component responsible for generating the message
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="title" type="xs:string" minOccurs="0">
+				<xs:annotation>
+					<xs:documentation>
+						A short title or description of the message. This will be used as the 'subject' in generated emails.
 					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
@@ -75,7 +90,7 @@
 			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
-	
+
 	<xs:simpleType name="severity">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="DEBUG">

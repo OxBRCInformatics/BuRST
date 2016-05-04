@@ -25,15 +25,15 @@ public class MessageDTO implements Serializable{
     private OffsetDateTime dateTimeCreated;
     @XmlElement(required=true)
     private String details;
-    @XmlElement(name = "metadata", required = false)
-    //@XmlElementWrapper(name="metadata")
+    @XmlElement(name = "metadata")
     private List<Metadata> metadata;
     @XmlElement(required = true)
     private SeverityEnum severity;
     @XmlElement(required=true)
     private String source;
+    @XmlElement
+    private String title;
     @XmlElement( name="topic",required=true)
-    //@XmlElementWrapper(name="topics")
     private List<String> topics;
 
     public MessageDTO(){
@@ -58,14 +58,11 @@ public class MessageDTO implements Serializable{
         topics.add(topic);
     }
 
-    public Message generateMessage()
-    {
-        Message msg = new Message(this.source, this.details, this.getSeverity(), dateTimeCreated);
+    public Message generateMessage() {
+        Message msg = new Message(this.source, this.details, this.getSeverity(), dateTimeCreated, title);
         topics.forEach(msg::addTopic);
-        if(metadata != null)
-        {
-            for(Metadata md : metadata)
-            {
+        if (metadata != null) {
+            for (Metadata md : metadata) {
                 msg.addMetadata(md.key, md.value);
             }
         }
@@ -111,6 +108,14 @@ public class MessageDTO implements Serializable{
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public List<String> getTopics() {

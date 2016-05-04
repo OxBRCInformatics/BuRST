@@ -14,17 +14,8 @@ import java.util.List;
 @Table(schema="Report")
 @NamedQueries({
                       @NamedQuery(name="Message.MatchedMessages",
-                                  //			query="select distinct m from Message m join m.topics as t "
-                                  ///					+ "where (t in (:topics) "
-                                  //					+ "and m.dateTimeReceived < :dateNow "
-                                  //					+ "and m.dateTimeReceived >= :lastSentDate "
-                                  //					+ "and m.severityNumber >= :severity ) "
-                                  //					+ "group by m.id having count(distinct t) > (:topicsSize) ")
                                   query="select distinct m from Message m "
                                         + "where "
-                                          //			+ "m in ( "
-                                          //			+ "select n from Message n inner join n.topics nt where nt in (:topics) "
-                                          //			+ "group by n having :topicsSize <= count(distinct nt) ) "
                                         + "m.dateTimeReceived < :dateNow "
                                         + "and m.dateTimeReceived >= :lastSentDate "
                                         + "and m.severityNumber >= :severity ")
@@ -46,6 +37,7 @@ public class Message implements Serializable{
     protected SeverityEnum severity;
     protected int severityNumber;
     protected String source;
+    protected String title;
     @Fetch(FetchMode.JOIN)
     @ElementCollection(fetch=FetchType.EAGER)
     @CollectionTable(schema="Report")
@@ -57,13 +49,14 @@ public class Message implements Serializable{
         metadata = new ArrayList<>();
     }
 
-    public Message(String source, String message, SeverityEnum severity, OffsetDateTime dateTimeCreated)
+    public Message(String source, String message, SeverityEnum severity, OffsetDateTime dateTimeCreated, String title)
     {
         dateTimeReceived = OffsetDateTime.now(ZoneId.of("UTC"));
         this.source = source;
         this.message = message;
         this.severity = severity;
         this.dateTimeCreated = dateTimeCreated;
+        this.title = title;
         topics = new ArrayList<>();
         metadata = new ArrayList<>();
     }
@@ -120,6 +113,14 @@ public class Message implements Serializable{
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public List<String> getTopics() {

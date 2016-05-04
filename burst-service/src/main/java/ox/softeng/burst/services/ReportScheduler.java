@@ -23,6 +23,7 @@ public class ReportScheduler implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(ReportScheduler.class);
     private final EntityManagerFactory entityManagerFactory;
+    private String defaultEmailSubject;
     private String emailsFrom;
     private String smtpHost;
     private String smtpPassword;
@@ -34,6 +35,7 @@ public class ReportScheduler implements Runnable {
         smtpHost = props.getProperty("smtp-host");
         smtpUsername = props.getProperty("smtp-username");
         smtpPassword = props.getProperty("smtp-password");
+        defaultEmailSubject = props.getProperty("default-email-subject", "Burst Reporting Message");
     }
 
     @Override
@@ -49,6 +51,7 @@ public class ReportScheduler implements Runnable {
             TypedQuery<Subscription> subsQuery = em.createNamedQuery("Subscription.allDue", Subscription.class);
             subsQuery.setParameter("dateNow", now);
             List<Subscription> dueSubscriptions = subsQuery.getResultList();
+            em.close();
 
             logger.info("Handling {} active subscriptions", dueSubscriptions.size());
             for (Subscription s : dueSubscriptions) {
@@ -65,7 +68,7 @@ public class ReportScheduler implements Runnable {
                     String emailContent = "";
                     int count = 0;
                     logger.debug("Generating email content for {} subscription topics", s.getTopics().size());
-
+                    String msgSubject = defaultEmailSubject;
                     for (ox.softeng.burst.domain.Message msg : matchedMessages) {
                         logger.debug("Checking message with {} topics", msg.getTopics().size());
                         // Now we ensure the subscribed topics are a subset of the message topics
@@ -74,6 +77,7 @@ public class ReportScheduler implements Runnable {
                             // We send a message with the concatenation of all the messages
                             emailContent += msg.getMessage();
                             emailContent += "\n\n";
+                            msgSubject = msg.getTitle();
                             count++;
                         }
                     }
@@ -82,14 +86,15 @@ public class ReportScheduler implements Runnable {
                     if (count > 0) {
                         logger.info("Sending an email to: " + s.getSubscriber().getEmailAddress());
                         logger.debug("Content: \n{}", emailContent);
-                        sendMessage(s.getSubscriber().getEmailAddress(), "Genomics England reporting message", emailContent);
+                        String subj = count == 1 ? msgSubject : defaultEmailSubject;
+                        sendMessage(s.getSubscriber().getEmailAddress(), subj, emailContent);
                     }
 
                     // Then we re-calculate the "last sent" and "next send" timestamps and update the record
                     updateSubscription(s, now);
                 }
             }
-            em.close();
+
 
             // Finally we find any subscription where the "time of next run" is not set,
             // and put a time on it.
@@ -102,12 +107,12 @@ public class ReportScheduler implements Runnable {
     }
 
     private List<ox.softeng.burst.domain.Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime, Severity severity) {
-        EntityManager msgEm = entityManagerFactory.createEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         logger.debug("Creating message query with [Date '{}', Last run Date '{}', Severity '{}']",
                      runTime, subscription.getLastScheduledRun(), severity.getSeverity());
-        TypedQuery<ox.softeng.burst.domain.Message> msgQuery = msgEm.createNamedQuery("Message.MatchedMessages",
-                                                                                      ox.softeng.burst.domain.Message.class);
+        TypedQuery<ox.softeng.burst.domain.Message> msgQuery = entityManager.createNamedQuery("Message.MatchedMessages",
+                                                                                              ox.softeng.burst.domain.Message.class);
         msgQuery.setParameter("dateNow", runTime);
         msgQuery.setParameter("lastSentDate", subscription.getLastScheduledRun());
         msgQuery.setParameter("severity", severity.getSeverity().ordinal());
@@ -116,7 +121,7 @@ public class ReportScheduler implements Runnable {
         logger.debug("Getting matching messages");
         List<ox.softeng.burst.domain.Message> matchedMessages = msgQuery.getResultList();
         logger.info("Subscription has {} currently matching messages", matchedMessages.size());
-        msgEm.close();
+        entityManager.close();
 
         return matchedMessages;
     }
@@ -189,10 +194,10 @@ public class ReportScheduler implements Runnable {
         logger.debug("Updating last run time and scheduling next run for {}", subscription.getId());
         subscription.setLastScheduledRun(lastRun);
         subscription.calculateNextScheduledRun();
-        EntityManager subEm = entityManagerFactory.createEntityManager();
-        subEm.getTransaction().begin();
-        subEm.merge(subscription);
-        subEm.getTransaction().commit();
-        subEm.close();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        entityManager.getTransaction().begin();
+        entityManager.merge(subscription);
+        entityManager.getTransaction().commit();
+        entityManager.close();
     }
 }
