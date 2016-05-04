@@ -1,7 +1,5 @@
 <?xml version="1.0" standalone="yes"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0"
-					 targetNamespace="http://www.burst.softeng.ox/1.0.1" xmlns="http://www.burst.softeng.ox/1.0.1" elementFormDefault="qualified"
->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0" elementFormDefault="qualified">
 	<xs:element name="message" type="messageMsg">
 		<xs:annotation>
 			<xs:documentation>
@@ -9,6 +7,7 @@
 				People subscribe to a topic, and a severity - e.g. email me messages about T, with severity greater than S.
 				Metadata can be used to trace processing of a particular data item or file.
 			</xs:documentation>
+			<xs:appinfo>v1.0.1</xs:appinfo>
 		</xs:annotation>
 	</xs:element>
 	<xs:complexType name="messageMsg">
