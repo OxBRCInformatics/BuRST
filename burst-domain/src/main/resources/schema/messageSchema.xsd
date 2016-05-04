@@ -1,14 +1,7 @@
 <?xml version="1.0" standalone="yes"?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" version="1.0"
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0"
 					 targetNamespace="http://www.burst.softeng.ox/1.0.1" xmlns="http://www.burst.softeng.ox/1.0.1" elementFormDefault="qualified"
-					 jaxb:version="2.0">
-	<xs:annotation>
-		<xs:appinfo>
-			<jaxb:schemaBindings>
-				<jaxb:package name="ox.softeng.burst.domain"/>
-			</jaxb:schemaBindings>
-		</xs:appinfo>
-	</xs:annotation>
+>
 	<xs:element name="message" type="messageMsg">
 		<xs:annotation>
 			<xs:documentation>

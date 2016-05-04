@@ -1,6 +1,6 @@
 package ox.softeng.burst.services;
 
-import ox.softeng.burst.domain.Message;
+import ox.softeng.burst.domain.report.Message;
 import ox.softeng.burst.xml.MessageDTO;
 
 import com.rabbitmq.client.*;

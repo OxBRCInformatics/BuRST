@@ -36,10 +36,9 @@ public class BurstService {
         logger.info("Connecting to database using: \n{}",
                     properties.stringPropertyNames().stream()
                             .filter(key -> key.startsWith("hibernate"))
-                            .map(key -> "  " +
-                                        key.replaceFirst("hibernate\\.", "").replaceAll("\\.", " ") +
-                                        ": " + properties.getProperty(key) + "\n"
-                                ).collect(Collectors.toList()));
+                            .map(key -> "  " + key.replaceFirst("hibernate\\.", "") +
+                                        ": " + properties.getProperty(key)
+                                ).collect(Collectors.joining("\n")));
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("ox.softeng.burst", properties);
 
         String RabbitMQHost = properties.getProperty("RabbitMQHost");

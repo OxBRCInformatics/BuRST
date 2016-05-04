@@ -1,7 +1,7 @@
 package ox.softeng.burst.services;
 
-import ox.softeng.burst.domain.Severity;
-import ox.softeng.burst.domain.Subscription;
+import ox.softeng.burst.domain.subscription.Severity;
+import ox.softeng.burst.domain.subscription.Subscription;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +16,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -48,7 +50,7 @@ public class ReportScheduler implements Runnable {
 
             // First we find all the subscriptions where the "next time" is less than now
             EntityManager em = entityManagerFactory.createEntityManager();
-            TypedQuery<Subscription> subsQuery = em.createNamedQuery("Subscription.allDue", Subscription.class);
+            TypedQuery<Subscription> subsQuery = em.createNamedQuery("subscription.allDue", Subscription.class);
             subsQuery.setParameter("dateNow", now);
             List<Subscription> dueSubscriptions = subsQuery.getResultList();
             em.close();
@@ -56,24 +58,24 @@ public class ReportScheduler implements Runnable {
             logger.info("Handling {} active subscriptions", dueSubscriptions.size());
             for (Subscription s : dueSubscriptions) {
                 logger.debug("Calculating number of topics");
-
-                if (s.getTopics().size() == 0) {
+                Collection<String> sTopics = Arrays.asList(s.getTopics().split(","));
+                if (sTopics.size() == 0) {
                     logger.warn("Subscription {} has no registered topics", s.getId());
                 } else {
                     logger.debug("Handling subscription: {}", s.getId());
 
                     // For each of those, we find all the matching messages
-                    List<ox.softeng.burst.domain.Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
+                    List<ox.softeng.burst.domain.report.Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
 
                     String emailContent = "";
                     int count = 0;
-                    logger.debug("Generating email content for {} subscription topics", s.getTopics().size());
+                    logger.debug("Generating email content for {} subscription topics", sTopics.size());
                     String msgSubject = defaultEmailSubject;
-                    for (ox.softeng.burst.domain.Message msg : matchedMessages) {
+                    for (ox.softeng.burst.domain.report.Message msg : matchedMessages) {
                         logger.debug("Checking message with {} topics", msg.getTopics().size());
                         // Now we ensure the subscribed topics are a subset of the message topics
                         // Can't get this working within the query itself
-                        if (msg.getTopics().containsAll(s.getTopics())) {
+                        if (msg.getTopics().containsAll(sTopics)) {
                             // We send a message with the concatenation of all the messages
                             emailContent += msg.getMessage();
                             emailContent += "\n\n";
@@ -106,20 +108,21 @@ public class ReportScheduler implements Runnable {
         }
     }
 
-    private List<ox.softeng.burst.domain.Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime, Severity severity) {
+    private List<ox.softeng.burst.domain.report.Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime,
+                                                                                     Severity severity) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         logger.debug("Creating message query with [Date '{}', Last run Date '{}', Severity '{}']",
                      runTime, subscription.getLastScheduledRun(), severity.getSeverity());
-        TypedQuery<ox.softeng.burst.domain.Message> msgQuery = entityManager.createNamedQuery("Message.MatchedMessages",
-                                                                                              ox.softeng.burst.domain.Message.class);
+        TypedQuery<ox.softeng.burst.domain.report.Message> msgQuery = entityManager.createNamedQuery("message.MatchedMessages",
+                                                                                                     ox.softeng.burst.domain.report.Message.class);
         msgQuery.setParameter("dateNow", runTime);
         msgQuery.setParameter("lastSentDate", subscription.getLastScheduledRun());
         msgQuery.setParameter("severity", severity.getSeverity().ordinal());
         //msgQuery.setParameter("topics", s.getTopics());
         //msgQuery.setParameter("topicsSize", s.getTopics().size());
         logger.debug("Getting matching messages");
-        List<ox.softeng.burst.domain.Message> matchedMessages = msgQuery.getResultList();
+        List<ox.softeng.burst.domain.report.Message> matchedMessages = msgQuery.getResultList();
         logger.info("Subscription has {} currently matching messages", matchedMessages.size());
         entityManager.close();
 
@@ -128,7 +131,7 @@ public class ReportScheduler implements Runnable {
 
     private void initialiseSubscriptions() {
         EntityManager badSubsEm = entityManagerFactory.createEntityManager();
-        TypedQuery<Subscription> badSubsQuery = badSubsEm.createNamedQuery("Subscription.unInitialised", Subscription.class);
+        TypedQuery<Subscription> badSubsQuery = badSubsEm.createNamedQuery("subscription.unInitialised", Subscription.class);
         List<Subscription> uninitialisedSubscriptions = badSubsQuery.getResultList();
         logger.debug("Initialising {} subscriptions", uninitialisedSubscriptions.size());
         badSubsEm.close();

@@ -1,7 +1,7 @@
 package ox.softeng.burst.xml;
 
-import ox.softeng.burst.domain.Message;
-import ox.softeng.burst.domain.SeverityEnum;
+import ox.softeng.burst.domain.report.Message;
+import ox.softeng.burst.domain.subscription.SeverityEnum;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -17,10 +17,9 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class MessageDTO implements Serializable{
 
-
     private static final long serialVersionUID = 1L;
 
-    @XmlElement(required=true)
+    @XmlElement(required = true)
     @XmlJavaTypeAdapter(OffsetDateTimeAdapter.class)
     private OffsetDateTime dateTimeCreated;
     @XmlElement(required=true)

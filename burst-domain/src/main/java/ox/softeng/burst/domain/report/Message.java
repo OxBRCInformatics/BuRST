@@ -1,4 +1,6 @@
-package ox.softeng.burst.domain;
+package ox.softeng.burst.domain.report;
+
+import ox.softeng.burst.domain.subscription.SeverityEnum;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -11,23 +13,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(schema="Report")
+@Table(name = "message", schema = "report")
 @NamedQueries({
-                      @NamedQuery(name="Message.MatchedMessages",
-                                  query="select distinct m from Message m "
-                                        + "where "
-                                        + "m.dateTimeReceived < :dateNow "
-                                        + "and m.dateTimeReceived >= :lastSentDate "
-                                        + "and m.severityNumber >= :severity ")
+                      @NamedQuery(name = "message.MatchedMessages",
+                                  query = "select distinct m from Message m "
+                                          + "where "
+                                          + "m.dateTimeReceived < :dateNow "
+                                          + "and m.dateTimeReceived >= :lastSentDate "
+                                          + "and m.severityNumber >= :severity ")
               })
-public class Message implements Serializable{
+public class Message implements Serializable {
 
 
     private static final long serialVersionUID = 1L;
+    @Column(name = "datetime_created")
     protected OffsetDateTime dateTimeCreated;
+    @Column(name = "datetime_received")
     protected OffsetDateTime dateTimeReceived;
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     protected Long id = null;
     @Column(length = 10485760)
     protected String message;
@@ -35,22 +39,24 @@ public class Message implements Serializable{
     protected List<Metadata> metadata;
     @Enumerated(EnumType.STRING)
     protected SeverityEnum severity;
+    @Column(name = "severity_number")
     protected int severityNumber;
     protected String source;
     protected String title;
     @Fetch(FetchMode.JOIN)
-    @ElementCollection(fetch=FetchType.EAGER)
-    @CollectionTable(schema="Report")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "message_topics",
+                     schema = "report",
+                     joinColumns = @JoinColumn(name = "message_id",
+                                               referencedColumnName = "id"))
     protected List<String> topics;
 
-    public Message()
-    {
+    public Message() {
         topics = new ArrayList<>();
         metadata = new ArrayList<>();
     }
 
-    public Message(String source, String message, SeverityEnum severity, OffsetDateTime dateTimeCreated, String title)
-    {
+    public Message(String source, String message, SeverityEnum severity, OffsetDateTime dateTimeCreated, String title) {
         dateTimeReceived = OffsetDateTime.now(ZoneId.of("UTC"));
         this.source = source;
         this.message = message;
@@ -61,13 +67,11 @@ public class Message implements Serializable{
         metadata = new ArrayList<>();
     }
 
-    public void addMetadata(String key, String value)
-    {
+    public void addMetadata(String key, String value) {
         metadata.add(new Metadata(key, value, this));
     }
 
-    public void addTopic(String topic)
-    {
+    public void addTopic(String topic) {
         topics.add(topic);
     }
 
@@ -133,9 +137,8 @@ public class Message implements Serializable{
 
     @PrePersist
     public void updateSeverityNumber() {
-        if(severity != null)
-        {
-        	this.severityNumber = severity.ordinal();
+        if (severity != null) {
+            this.severityNumber = severity.ordinal();
         }
     }
 }
