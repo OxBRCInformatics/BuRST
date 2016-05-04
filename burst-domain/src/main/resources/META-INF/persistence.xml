@@ -3,6 +3,12 @@
              xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
              version="2.0">
   <persistence-unit name="ox.softeng.burst">
+    <class>ox.softeng.burst.domain.report.Message</class>
+    <class>ox.softeng.burst.domain.report.Metadata</class>
+    <class>ox.softeng.burst.domain.subscription.Frequency</class>
+    <class>ox.softeng.burst.domain.subscription.Severity</class>
+    <class>ox.softeng.burst.domain.subscription.Subscription</class>
+    <class>ox.softeng.burst.domain.subscription.User</class>
     <properties>
       <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQL9Dialect"/>
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>

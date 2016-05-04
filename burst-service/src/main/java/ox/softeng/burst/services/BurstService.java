@@ -6,12 +6,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.xml.bind.JAXBException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 public class BurstService {
@@ -49,7 +51,15 @@ public class BurstService {
                     "  host: {}" +
                     "  exchange: {}" +
                     "  queue: {}", RabbitMQHost, RabbitMQExchange, RabbitMQQueue);
-        rabbitReceiver = new RabbitService(RabbitMQHost, RabbitMQExchange, RabbitMQQueue, entityManagerFactory);
+        try {
+            rabbitReceiver = new RabbitService(RabbitMQHost, RabbitMQExchange, RabbitMQQueue, entityManagerFactory);
+        } catch (IOException | TimeoutException e) {
+            logger.error("Cannot create RabbitMQ service: " + e.getMessage(), e);
+            System.exit(1);
+        } catch (JAXBException e) {
+            logger.error("Cannot create JAXB unmarshaller for messages: " + e.getMessage(), e);
+            System.exit(1);
+        }
 
         logger.info("Creating new report scheduler");
         reportScheduler = new ReportScheduler(entityManagerFactory, properties);
@@ -59,7 +69,8 @@ public class BurstService {
     }
 
     public void startService() {
-        logger.info("Starting service with report schedule frequency of {} {}", SCHEDULE_FREQUENCY, SCHEDULE_FREQUENCY_UNITS.name().toLowerCase());
+        logger.info("Starting service with report schedule frequency of {} {}", SCHEDULE_FREQUENCY,
+                    SCHEDULE_FREQUENCY_UNITS.name().toLowerCase());
         executor.execute(rabbitReceiver);
         executor.scheduleAtFixedRate(reportScheduler, 0, SCHEDULE_FREQUENCY, SCHEDULE_FREQUENCY_UNITS);
     }
@@ -117,7 +128,7 @@ public class BurstService {
 
                     logger.info("Burst service started in {}ms", System.currentTimeMillis() - start);
                 } catch (IOException ex) {
-                    logger.error("Could not create burst service because: " + ex.getMessage(), ex);
+                    logger.error("Burst service failed due to: " + ex.getMessage(), ex);
                 }
             } else {
                 help();

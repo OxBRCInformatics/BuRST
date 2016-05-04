@@ -13,45 +13,37 @@ import javax.persistence.EntityManagerFactory;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.concurrent.TimeoutException;
 
 public class RabbitService implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(RabbitService.class);
+    private final Connection connection;
     private final EntityManagerFactory entityManagerFactory;
-    private Channel channel;
+    private String rabbitMQExchange;
     private String rabbitMQQueue;
     private Unmarshaller unmarshaller;
 
-    public RabbitService(String rabbitMQHost, String rabbitMQExchange, String rabbitMQQueue, EntityManagerFactory emf) {
+    public RabbitService(String rabbitMQHost, String rabbitMQExchange, String rabbitMQQueue, EntityManagerFactory emf)
+            throws IOException, TimeoutException, JAXBException {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(rabbitMQHost);
         entityManagerFactory = emf;
         this.rabbitMQQueue = rabbitMQQueue;
+        this.rabbitMQExchange = rabbitMQExchange;
 
-        try {
-            Connection connection = factory.newConnection();
-            channel = connection.createChannel();
-            channel.exchangeDeclare(rabbitMQExchange, "topic", true);
-        } catch (IOException | TimeoutException e) {
-            logger.error("Cannot create RabbitMQ  service: " + e.getMessage(), e);
-        }
-
-        try {
-            unmarshaller = JAXBContext.newInstance(MessageDTO.class).createUnmarshaller();
-        } catch (JAXBException e) {
-            logger.error("Cannot create JAXB unmarshaller for messages: " + e.getMessage(), e);
-        }
+        connection = factory.newConnection();
+        unmarshaller = JAXBContext.newInstance(MessageDTO.class).createUnmarshaller();
     }
 
     public void run() {
-
-        Consumer consumer = createConsumer();
-
         try {
-            logger.warn("Waiting for messages. To exit press CTRL+C");
+            Channel channel = connection.createChannel();
+            channel.exchangeDeclare(rabbitMQExchange, "topic", true);
+            Consumer consumer = createConsumer(channel);
+            logger.warn("Waiting for messages");
             channel.basicConsume(rabbitMQQueue, true, consumer);
         } catch (IOException e) {
             logger.error("Error running consumer for queue '" + rabbitMQQueue + "'", e);
@@ -60,14 +52,14 @@ public class RabbitService implements Runnable {
         }
     }
 
-    private Consumer createConsumer() {
+    private Consumer createConsumer(Channel channel) {
         return new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                 String messageString = new String(body, "UTF-8");
                 String tag = properties.getMessageId() != null ? properties.getMessageId() : consumerTag;
                 try {
-                    MessageDTO messageDto = (MessageDTO) unmarshaller.unmarshal(new StreamSource(messageString));
+                    MessageDTO messageDto = (MessageDTO) unmarshaller.unmarshal(new StringReader(messageString));
                     Message m = messageDto.generateMessage();
 
                     logger.debug("{} - Received message DTO: \n{}", tag, messageDto.toString());

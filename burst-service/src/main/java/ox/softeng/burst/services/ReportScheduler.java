@@ -43,69 +43,66 @@ public class ReportScheduler implements Runnable {
     @Override
     public void run() {
 
-        try {
-            logger.info("Generating reports");
+        logger.info("Generating reports");
 
-            OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now();
 
-            // First we find all the subscriptions where the "next time" is less than now
-            EntityManager em = entityManagerFactory.createEntityManager();
-            TypedQuery<Subscription> subsQuery = em.createNamedQuery("subscription.allDue", Subscription.class);
-            subsQuery.setParameter("dateNow", now);
-            List<Subscription> dueSubscriptions = subsQuery.getResultList();
-            em.close();
+        // First we find all the subscriptions where the "next time" is less than now
+        EntityManager em = entityManagerFactory.createEntityManager();
+        TypedQuery<Subscription> subsQuery = em.createNamedQuery("subscription.allDue", Subscription.class);
+        subsQuery.setParameter("dateNow", now);
+        List<Subscription> dueSubscriptions = subsQuery.getResultList();
+        em.close();
 
-            logger.info("Handling {} active subscriptions", dueSubscriptions.size());
-            for (Subscription s : dueSubscriptions) {
-                logger.debug("Calculating number of topics");
-                Collection<String> sTopics = Arrays.asList(s.getTopics().split(","));
-                if (sTopics.size() == 0) {
-                    logger.warn("Subscription {} has no registered topics", s.getId());
-                } else {
-                    logger.debug("Handling subscription: {}", s.getId());
+        logger.info("Handling {} active subscriptions", dueSubscriptions.size());
+        for (Subscription s : dueSubscriptions) {
+            logger.debug("Calculating number of topics");
+            Collection<String> sTopics = Arrays.asList(s.getTopics().split(","));
+            if (sTopics.size() == 0) {
+                logger.warn("Subscription {} has no registered topics", s.getId());
+            } else {
+                logger.debug("Handling subscription: {}", s.getId());
 
-                    // For each of those, we find all the matching messages
-                    List<ox.softeng.burst.domain.report.Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
+                // For each of those, we find all the matching messages
+                List<ox.softeng.burst.domain.report.Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
 
-                    String emailContent = "";
-                    int count = 0;
-                    logger.debug("Generating email content for {} subscription topics", sTopics.size());
-                    String msgSubject = defaultEmailSubject;
-                    for (ox.softeng.burst.domain.report.Message msg : matchedMessages) {
-                        logger.debug("Checking message with {} topics", msg.getTopics().size());
-                        // Now we ensure the subscribed topics are a subset of the message topics
-                        // Can't get this working within the query itself
-                        if (msg.getTopics().containsAll(sTopics)) {
-                            // We send a message with the concatenation of all the messages
-                            emailContent += msg.getMessage();
-                            emailContent += "\n\n";
-                            msgSubject = msg.getTitle();
-                            count++;
-                        }
+                String emailContent = "";
+                int count = 0;
+                logger.debug("Generating email content for {} subscription topics", sTopics.size());
+                String msgSubject = defaultEmailSubject;
+                for (ox.softeng.burst.domain.report.Message msg : matchedMessages) {
+                    logger.debug("Checking message with {} topics", msg.getTopics().size());
+                    // Now we ensure the subscribed topics are a subset of the message topics
+                    // Can't get this working within the query itself
+                    if (msg.getTopics().containsAll(sTopics)) {
+                        // We send a message with the concatenation of all the messages
+                        emailContent += msg.getMessage();
+                        emailContent += "\n\n";
+                        msgSubject = msg.getTitle();
+                        count++;
                     }
-                    logger.debug("Email generated for {} messages", count);
-
-                    if (count > 0) {
-                        logger.info("Sending an email to: " + s.getSubscriber().getEmailAddress());
-                        logger.debug("Content: \n{}", emailContent);
-                        String subj = count == 1 ? msgSubject : defaultEmailSubject;
-                        sendMessage(s.getSubscriber().getEmailAddress(), subj, emailContent);
-                    }
-
-                    // Then we re-calculate the "last sent" and "next send" timestamps and update the record
-                    updateSubscription(s, now);
                 }
+                logger.debug("Email generated for {} messages", count);
+
+                if (count > 0) {
+                    logger.info("Sending an email to: " + s.getSubscriber().getEmailAddress());
+                    logger.debug("Content: \n{}", emailContent);
+                    String subj = count == 1 ? msgSubject : defaultEmailSubject;
+                    sendMessage(s.getSubscriber().getEmailAddress(), subj, emailContent);
+                }
+
+                // Then we re-calculate the "last sent" and "next send" timestamps and update the record
+                updateSubscription(s, now);
             }
-
-
-            // Finally we find any subscription where the "time of next run" is not set,
-            // and put a time on it.
-            initialiseSubscriptions();
-
-            logger.info("Reports generated");
-        } catch (Exception ex) {
-            logger.error("Unhandled exception: " + ex.getMessage(), ex);
         }
+
+
+        // Finally we find any subscription where the "time of next run" is not set,
+        // and put a time on it.
+        initialiseSubscriptions();
+
+        logger.info("Reports generated");
+
     }
 
     private List<ox.softeng.burst.domain.report.Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime,
