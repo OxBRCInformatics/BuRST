@@ -1,21 +1,19 @@
 package ox.softeng.burst.util.test;
 
+import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-
-import com.rabbitmq.client.Channel;
-
 public class TestSendMessage {
 	  private final static String QUEUE_NAME = "burst";
 
 	  public static void main(String[] argv) throws Exception {
 	    ConnectionFactory factory = new ConnectionFactory();
-	    factory.setHost("192.168.99.100");
-	    Connection connection = factory.newConnection();
+		  factory.setHost("localhost");
+		  Connection connection = factory.newConnection();
 	    Channel channel = connection.createChannel();
 
 	    channel.exchangeDeclare("Carfax", "topic", true);
