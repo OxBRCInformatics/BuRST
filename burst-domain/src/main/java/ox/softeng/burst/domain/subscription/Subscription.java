@@ -1,10 +1,14 @@
 package ox.softeng.burst.domain.subscription;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -18,8 +22,10 @@ import java.util.stream.Collectors;
                                   query = "select s from Subscription s where s.nextScheduledRun is null or s.lastScheduledRun is " +
                                           "null "),
               })
-@SequenceGenerator(name = "subscriptionIdSeq", sequenceName = "subscription.subscription_id_seq")
+@SequenceGenerator(name = "subscriptionIdSeq", sequenceName = "subscription.subscription_id_seq", allocationSize = 1)
 public class Subscription implements Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(Subscription.class);
 
     private static final long serialVersionUID = 1L;
     @ManyToOne
@@ -37,7 +43,16 @@ public class Subscription implements Serializable {
     protected Severity severity;
     @ManyToOne
     protected User subscriber;
-    protected String topics;
+    @Fetch(FetchMode.JOIN)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "subscription_topics",
+                     schema = "subscription",
+                     joinColumns = @JoinColumn(name = "subscription_id",
+                                               referencedColumnName = "id"))
+    protected Set<String> topics;
+
+    @Column(name = "topics")
+    protected String topicsString;
 
     public Subscription(User subscriber, Frequency frequency, Severity severity) {
         this(subscriber, frequency, severity, "");
@@ -51,7 +66,8 @@ public class Subscription implements Serializable {
         this.subscriber = subscriber;
         this.frequency = frequency;
         this.severity = severity;
-        this.topics = topics;
+        this.topics = new HashSet<>();
+        addTopics(topics);
 
         nextScheduledRun = OffsetDateTime.now();
         switch (frequency.getFrequency()) {
@@ -72,17 +88,19 @@ public class Subscription implements Serializable {
     }
 
     public Subscription() {
-
     }
 
-    public void addTopic(String tpc) {
-        addTopics(Collections.singletonList(tpc));
+    public void addTopic(String topic) {
+        addTopics(topic);
     }
 
     public void addTopics(Collection<String> topicCollection) {
-        StringBuilder sb = new StringBuilder(topics);
-        topicCollection.forEach(topic -> sb.append(",").append(topic));
-        topics = sb.toString();
+        this.topics.addAll(topicCollection);
+        topicsString = topicCollection.stream().collect(Collectors.joining(","));
+    }
+
+    public void addTopics(String topics) {
+        addTopics(Arrays.asList(topics.split(",")));
     }
 
     public void calculateNextScheduledRun() {
@@ -157,11 +175,53 @@ public class Subscription implements Serializable {
         this.subscriber = subscriber;
     }
 
-    public String getTopics() {
+    public Set<String> getTopics() {
         return topics;
     }
 
-    public void setTopics(String topics) {
-        this.topics = topics;
+    public void setTopics(Set<String> topics) {
+        this.topics = new HashSet<>(topics);
+        this.topicsString = topics.stream().collect(Collectors.joining(","));
+    }
+
+    public String getTopicsString() {
+        return topics.stream().collect(Collectors.joining(","));
+    }
+
+    public void setTopicsString(String topics) {
+        setTopics(new HashSet<>(Arrays.asList(topics.split(","))));
+    }
+
+    public void tidyUpTopics(EntityManagerFactory entityManagerFactory) {
+        Set<String> tidied = new HashSet<>();
+        if (topicsString != null) tidied.addAll(Arrays.asList(topicsString.split(",")));
+        topics.forEach(topic -> tidied.addAll(Arrays.asList(topic.split(","))));
+        if (tidied.size() != topics.size()) {
+            setTopics(tidied);
+            EntityManager em = entityManagerFactory.createEntityManager();
+            em.getTransaction().begin();
+            em.merge(this);
+            em.getTransaction().commit();
+            em.close();
+        }
+    }
+
+    public static void initialiseSubscriptions(EntityManagerFactory entityManagerFactory) {
+        EntityManager badSubsEm = entityManagerFactory.createEntityManager();
+        TypedQuery<Subscription> badSubsQuery = badSubsEm.createNamedQuery("subscription.unInitialised", Subscription.class);
+        List<Subscription> uninitialisedSubscriptions = badSubsQuery.getResultList();
+        badSubsEm.close();
+        if (uninitialisedSubscriptions.size() > 0) {
+            logger.debug("Initialising {} subscriptions", uninitialisedSubscriptions.size());
+            for (Subscription s : uninitialisedSubscriptions) {
+                logger.debug("Scheduling new run for {} subscription {}", s.getSubscriber().emailAddress, s.getId());
+                EntityManager schedEm = entityManagerFactory.createEntityManager();
+                schedEm.getTransaction().begin();
+                s.calculateNextScheduledRun();
+                schedEm.merge(s);
+                schedEm.getTransaction().commit();
+                schedEm.close();
+            }
+        }
     }
 }

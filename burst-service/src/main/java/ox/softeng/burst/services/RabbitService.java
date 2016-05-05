@@ -29,6 +29,7 @@ public class RabbitService implements Runnable {
     public RabbitService(String rabbitMQHost, String rabbitMQExchange, String rabbitMQQueue, EntityManagerFactory emf)
             throws IOException, TimeoutException, JAXBException {
         ConnectionFactory factory = new ConnectionFactory();
+        factory.setAutomaticRecoveryEnabled(true);
         factory.setHost(rabbitMQHost);
         entityManagerFactory = emf;
         this.rabbitMQQueue = rabbitMQQueue;
@@ -62,7 +63,7 @@ public class RabbitService implements Runnable {
                     MessageDTO messageDto = (MessageDTO) unmarshaller.unmarshal(new StringReader(messageString));
                     Message m = messageDto.generateMessage();
 
-                    logger.debug("{} - Received message DTO: \n{}", tag, messageDto.toString());
+                    logger.debug("{} - Received message DTO: {}", tag, messageDto.toString());
 
                     logger.debug("{} - Saving message to database", tag);
                     EntityManager entityManager = entityManagerFactory.createEntityManager();

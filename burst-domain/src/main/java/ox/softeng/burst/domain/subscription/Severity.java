@@ -1,5 +1,7 @@
 package ox.softeng.burst.domain.subscription;
 
+import ox.softeng.burst.domain.SeverityEnum;
+
 import javax.persistence.*;
 
 @Entity

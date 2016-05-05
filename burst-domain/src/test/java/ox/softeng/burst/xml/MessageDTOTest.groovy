@@ -1,6 +1,6 @@
 package ox.softeng.burst.xml
 
-import ox.softeng.burst.domain.subscription.SeverityEnum
+import ox.softeng.burst.domain.SeverityEnum
 import spock.lang.Shared
 import spock.lang.Specification
 

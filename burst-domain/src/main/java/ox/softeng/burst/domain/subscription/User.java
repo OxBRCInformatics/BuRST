@@ -1,21 +1,21 @@
 package ox.softeng.burst.domain.subscription;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "users", schema = "subscription", uniqueConstraints = @UniqueConstraint(name = "unique_email_address", columnNames = {"email_address"}))
-@SequenceGenerator(name = "usersIdSeq", sequenceName = "subscription.users_id_seq")
+@Table(name = "users", schema = "subscription")
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    @Id
     @Column(name = "email_address")
     protected String emailAddress;
     @Column(name = "first_name")
     protected String firstName;
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usersIdSeq")
-    protected Long id = null;
     @Column(name = "last_name")
     protected String lastName;
     protected String organisation;
@@ -47,9 +47,9 @@ public class User implements Serializable {
         this.firstName = firstName;
     }
 
-    public Long getId() {
-        return id;
-    }
+    //    public Long getId() {
+    //        return id;
+    //   }
 
     public String getLastName() {
         return lastName;

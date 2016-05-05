@@ -1,7 +1,7 @@
 package ox.softeng.burst.xml;
 
+import ox.softeng.burst.domain.SeverityEnum;
 import ox.softeng.burst.domain.report.Message;
-import ox.softeng.burst.domain.subscription.SeverityEnum;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

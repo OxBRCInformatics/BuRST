@@ -1,6 +1,6 @@
 package ox.softeng.burst.domain.report;
 
-import ox.softeng.burst.domain.subscription.SeverityEnum;
+import ox.softeng.burst.domain.SeverityEnum;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -22,6 +22,7 @@ import java.util.List;
                                           + "and m.dateTimeReceived >= :lastSentDate "
                                           + "and m.severityNumber >= :severity ")
               })
+@SequenceGenerator(name = "messagesIdSeq", sequenceName = "report.messages_id_seq", allocationSize = 1)
 public class Message implements Serializable {
 
 
@@ -31,9 +32,9 @@ public class Message implements Serializable {
     @Column(name = "datetime_received")
     protected OffsetDateTime dateTimeReceived;
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "messagesIdSeq")
     protected Long id = null;
-    @Column(length = 10485760)
+    @Column(name = "message", columnDefinition = "TEXT")
     protected String message;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "message")
     protected List<Metadata> metadata;

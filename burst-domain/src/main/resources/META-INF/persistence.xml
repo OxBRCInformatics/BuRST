@@ -14,7 +14,7 @@
       <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
       <property name="hibernate.show_sql" value="false"/>
       <property name="hibernate.format_sql" value="true"/>
-      <!--<property name="hibernate.hbm2ddl.auto" value="flyway"/>-->
+      <!--<property name="hibernate.hbm2ddl.auto" value="update"/>-->
       <property name="hibernate.temp.use_jdbc_metadata_defaults" value="false"/>
     </properties>
   </persistence-unit>

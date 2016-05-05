@@ -1,7 +1,12 @@
 package ox.softeng.burst.util.test;
 
+import ox.softeng.burst.domain.FrequencyEnum;
+import ox.softeng.burst.domain.SeverityEnum;
 import ox.softeng.burst.domain.report.Message;
-import ox.softeng.burst.domain.subscription.*;
+import ox.softeng.burst.domain.subscription.Frequency;
+import ox.softeng.burst.domain.subscription.Severity;
+import ox.softeng.burst.domain.subscription.Subscription;
+import ox.softeng.burst.domain.subscription.User;
 
 import org.flywaydb.core.Flyway;
 

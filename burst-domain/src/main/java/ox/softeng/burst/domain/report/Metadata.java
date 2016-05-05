@@ -4,9 +4,10 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "metadata", schema = "report")
+@SequenceGenerator(name = "metadataIdSeq", sequenceName = "report.metadata_id_seq", allocationSize = 1)
 public class Metadata {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "metadataIdSeq")
     protected Long id = null;
     protected String key;
     @ManyToOne(fetch = FetchType.LAZY)
