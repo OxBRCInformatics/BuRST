@@ -1,6 +1,7 @@
 package ox.softeng.burst.services;
 
 import org.apache.commons.cli.*;
+import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +15,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 public class BurstService {
 
@@ -35,12 +35,15 @@ public class BurstService {
         if (System.getenv("BURST_VERSION") != null)
             logger.info("Docker container build version {}", System.getenv("BURST_VERSION"));
 
-        logger.info("Connecting to database using: \n{}",
-                    properties.stringPropertyNames().stream()
-                            .filter(key -> key.startsWith("hibernate"))
-                            .map(key -> "  " + key.replaceFirst("hibernate\\.", "") +
-                                        ": " + properties.getProperty(key)
-                                ).collect(Collectors.joining("\n")));
+        String user = (String) properties.get("hibernate.connection.user");
+        String url = (String) properties.get("hibernate.connection.url");
+        String password = (String) properties.get("hibernate.connection.password");
+
+        logger.info("Migrating database using: \n" +
+                    "  url: {}" +
+                    "  user: {}" +
+                    "  password: ****", url, user);
+        migrateDatabase(url, user, password);
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("ox.softeng.burst", properties);
 
         String RabbitMQHost = properties.getProperty("RabbitMQHost");
@@ -102,6 +105,12 @@ public class BurstService {
         formatter.printHelp(120,
                             "burst-service -c <FILE>",
                             header, defineOptions(), footer, false);
+    }
+
+    private static void migrateDatabase(String url, String user, String password) {
+        Flyway flyway = new Flyway();
+        flyway.setDataSource(url, user, password);
+        flyway.migrate();
     }
 
     private static String version() {
