@@ -9,7 +9,7 @@ public class OffsetDateTimeAdapter
         extends XmlAdapter<Date, OffsetDateTime> {
 
     public OffsetDateTime unmarshal(Date v) throws Exception {
-        return OffsetDateTime.ofInstant(v.toInstant(), ZoneId.systemDefault());
+        return OffsetDateTime.ofInstant(v.toInstant(), ZoneId.of("UTC"));
     }
 
     public Date marshal(OffsetDateTime v) throws Exception {

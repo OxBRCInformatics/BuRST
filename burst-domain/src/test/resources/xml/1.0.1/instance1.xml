@@ -1,0 +1,16 @@
+<message>
+  <dateTimeCreated>2006-05-04T18:13:51.0Z</dateTimeCreated>
+  <severity>ERROR</severity>
+  <source>System 1</source>
+  <details>There is a problem here</details>
+  <topic>topic 1</topic>
+  <topic>topic 2</topic>
+  <metadata>
+    <key>ParticipantID</key>
+    <value>12345678</value>
+  </metadata>
+  <metadata>
+    <key>CSV name</key>
+    <value>ertyuio.csv</value>
+  </metadata>
+</message>

@@ -1,0 +1,13 @@
+<message>
+  <dateTimeCreated>2006-05-04T18:13:51.0Z</dateTimeCreated>
+  <severity>NOTICE</severity>
+  <source>System 1</source>
+  <details>There is a problem here</details>
+  <topic>topic 1</topic>
+  <topic>topic 2</topic>
+  <topic>topic 3</topic>
+  <metadata>
+    <key>a</key>
+    <value>b</value>
+  </metadata>
+</message>

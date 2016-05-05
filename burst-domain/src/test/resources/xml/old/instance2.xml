@@ -1,0 +1,8 @@
+<message>
+  <dateTimeCreated>2006-05-04T18:13:51.0Z</dateTimeCreated>
+  <severity>WARNING</severity>
+  <source>System 2</source>
+  <details>There is a problem here</details>
+  <topic>topic 3</topic>
+  <topic>topic 2</topic>
+</message>
