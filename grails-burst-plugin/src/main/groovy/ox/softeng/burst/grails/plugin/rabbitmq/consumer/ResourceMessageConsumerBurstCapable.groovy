@@ -21,10 +21,11 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
     abstract Map<String, String> extractRelevantMetadataFromGeneratedInstance(R instance)
 
     String handleMessage(String body, MessageContext messageContext) {
-        String messageId = messageContext.properties.messageId ?: messageContext.consumerTag
+        String messageId = getMessageId(messageContext)
         try {
             if (!acceptedContentType(messageContext)) {
-                handleException(new UnacceptableMimeTypeException('BURST08', rabbitConfig.queue, messageContext.properties.contentType),
+                handleException(new UnacceptableMimeTypeException('BURST08', rabbitConfig.queue as String,
+                                                                  messageContext.properties.contentType),
                                 messageId, messageContext)
                 return respond(NOT_ACCEPTABLE, messageId, messageContext, body)
             }
@@ -61,7 +62,7 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
 
         // Binding failed so we have nothing to extract for metadata
         if (instance instanceof Errors) {
-            handleErrors(instance, 'BURSTVAL01', messageId, messageContext)
+            handleErrors(instance, 'VAL01', messageId, messageContext)
             return UNPROCESSABLE_ENTITY
         }
 
@@ -70,7 +71,7 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
         instance.validate()
         // If errors here then object has data but does not pass validation constraints
         if (instance.hasErrors()) {
-            handleErrors instance.errors as Errors, 'BURSTVAL02', messageId, messageContext,
+            handleErrors instance.errors as Errors, 'VAL02', messageId, messageContext,
                          extractRelevantMetadataFromGeneratedInstance(instance as R)
             return UNPROCESSABLE_ENTITY
         }
@@ -109,5 +110,10 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
 
     Class<R> getType() {
         ((ParameterizedType) this.class.genericSuperclass.find {it instanceof ParameterizedType}).actualTypeArguments[0] as Class
+    }
+
+    @Override
+    String getMessageId(MessageContext messageContext) {
+        messageContext.properties.messageId ?: messageContext.consumerTag
     }
 }

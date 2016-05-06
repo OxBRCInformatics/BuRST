@@ -1,5 +1,6 @@
 package ox.softeng.burst.grails.plugin.test
 
+import com.budjb.rabbitmq.consumer.MessageContext
 import org.hibernate.HibernateException
 import org.hibernate.JDBCException
 import ox.softeng.burst.grails.plugin.rabbitmq.consumer.XmlResourceMessageConsumerBurstCapable
@@ -13,7 +14,7 @@ class BurstValidationConsumer extends XmlResourceMessageConsumerBurstCapable<Tes
     ]
 
     @Override
-    List<String> getTopics() {
+    List<String> getContextTopics(MessageContext messageContext) {
         ['Test', 'validation']
     }
 

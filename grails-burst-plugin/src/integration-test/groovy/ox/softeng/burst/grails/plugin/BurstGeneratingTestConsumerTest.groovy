@@ -7,6 +7,8 @@ import grails.test.mixin.integration.Integration
 import grails.transaction.Rollback
 import grails.util.Holders
 import grails.web.mime.MimeType
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import ox.softeng.burst.grails.plugin.test.BurstListeningConsumer
 import ox.softeng.burst.grails.plugin.test.Test
@@ -22,7 +24,10 @@ class BurstGeneratingTestConsumerTest extends Specification {
     RabbitMessagePublisher rabbitMessagePublisher
     BurstListeningConsumer burstListeningConsumer
 
+    Logger logger = LoggerFactory.getLogger(BurstGeneratingTestConsumerTest)
+
     def setup() {
+        logger.warn("--- ${specificationContext.currentIteration.name} ---")
         // We use Spy so we can see the generated BuRST message XML
         burstListeningConsumer = Spy(BurstListeningConsumer)
 
@@ -108,7 +113,7 @@ class BurstGeneratingTestConsumerTest extends Specification {
         sleep(2000)
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
-        1 * burstListeningConsumer.handleMessage({it.contains('response&gt;201')} as String, _ as MessageContext)
+        1 * burstListeningConsumer.handleMessage({it.contains('Created')} as String, _ as MessageContext)
         0 * _
 
         and: 'we should have an instance of test'
@@ -116,6 +121,22 @@ class BurstGeneratingTestConsumerTest extends Specification {
             Test.countByNameAndType('test valid', 'test valid')
         }
 
+    }
+
+    void 'testing invalid content type'() {
+
+        when: 'place a message on the validation queue'
+        rabbitMessagePublisher.send {
+            exchange = 'test'
+            routingKey = 'test.validation'
+            body = '<Test><name>test valid</name><type>test valid</type></Test>'
+            contentType = MimeType.JSON.name
+        }
+        sleep(2000)
+
+        then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
+        1 * burstListeningConsumer.handleMessage({it.contains('BURST11')} as String, _ as MessageContext)
+        0 * _
     }
 
     void 'testing bad xml'() {
