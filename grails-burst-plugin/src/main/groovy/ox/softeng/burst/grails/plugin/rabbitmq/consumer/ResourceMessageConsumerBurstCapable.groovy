@@ -21,7 +21,7 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
     abstract Map<String, String> extractRelevantMetadataFromGeneratedInstance(R instance)
 
     String handleMessage(String body, MessageContext messageContext) {
-        String messageId = messageContext.properties.messageId ?: messageContext.consumerTag
+        String messageId = getMessageId(messageContext)
         try {
             if (!acceptedContentType(messageContext)) {
                 handleException(new UnacceptableMimeTypeException('BURST08', rabbitConfig.queue, messageContext.properties.contentType),
@@ -109,5 +109,10 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
 
     Class<R> getType() {
         ((ParameterizedType) this.class.genericSuperclass.find {it instanceof ParameterizedType}).actualTypeArguments[0] as Class
+    }
+
+    @Override
+    String getMessageId(MessageContext messageContext) {
+        messageContext.properties.messageId ?: messageContext.consumerTag
     }
 }

@@ -21,6 +21,8 @@ trait MessageConsumerBurstCapable extends BurstCapable {
         [MimeType.ALL]
     }
 
+    abstract String getMessageId(MessageContext messageContext)
+
     def respond(HttpStatus status, String messageId, MessageContext messageContext, def object) {
         respond(status, messageId, object, getDefaultMetadata(messageContext))
     }
@@ -83,12 +85,21 @@ trait MessageConsumerBurstCapable extends BurstCapable {
         handleException(ex, messageId, getDefaultMetadata(messageContext))
     }
 
+    void handleException(BurstException ex, String messageId, MessageContext messageContext, Map<String, String> metadataMap) {
+        handleException(ex, messageId, getDefaultMetadata(messageContext) + metadataMap)
+    }
+
+    void handleErrors(Errors errors, String errorCode, String messageId, String title, MessageContext messageContext) {
+        handleErrors(errors, errorCode, messageId, title, getDefaultMetadata(messageContext))
+    }
+
     void handleErrors(Errors errors, String errorCode, String messageId, MessageContext messageContext) {
         handleErrors(errors, errorCode, messageId, getDefaultMetadata(messageContext))
     }
 
-    void handleException(BurstException ex, String messageId, MessageContext messageContext, Map<String, String> metadataMap) {
-        handleException(ex, messageId, getDefaultMetadata(messageContext) + metadataMap)
+    void handleErrors(Errors errors, String errorCode, String messageId, String title, MessageContext messageContext,
+                      Map<String, String> metadataMap) {
+        handleErrors(errors, errorCode, messageId, title, getDefaultMetadata(messageContext) + metadataMap)
     }
 
     void handleErrors(Errors errors, String errorCode, String messageId, MessageContext messageContext, Map<String, String> metadataMap) {

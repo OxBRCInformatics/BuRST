@@ -19,7 +19,7 @@ trait XmlMessageConsumerBurstCapable extends MessageConsumerBurstCapable {
     }
 
     GPathResult handleMessage(GPathResult body, MessageContext messageContext) {
-        String messageId = messageContext.properties.messageId ?: messageContext.consumerTag
+        String messageId = getMessageId(messageContext)
         try {
             if (!acceptedContentType(messageContext)) {
                 handleException(new UnacceptableMimeTypeException('BURST04', rabbitConfig.queue, messageContext.properties.contentType),
@@ -50,6 +50,11 @@ trait XmlMessageConsumerBurstCapable extends MessageConsumerBurstCapable {
             handleException(new BurstException('BURST07', 'Unhandled Exception', ex), messageId, messageContext)
         }
         respond INTERNAL_SERVER_ERROR, messageId, messageContext, body
+    }
+
+    @Override
+    String getMessageId(MessageContext messageContext) {
+        messageContext.properties.messageId ?: messageContext.consumerTag
     }
 
     abstract Object processMessage(Object body, String messageId, MessageContext messageContext)

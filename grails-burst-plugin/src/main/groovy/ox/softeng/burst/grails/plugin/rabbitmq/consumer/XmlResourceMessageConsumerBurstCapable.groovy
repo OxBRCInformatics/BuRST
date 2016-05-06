@@ -19,7 +19,7 @@ abstract class XmlResourceMessageConsumerBurstCapable<R> extends ResourceMessage
     }
 
     GPathResult handleMessage(GPathResult body, MessageContext messageContext) {
-        String messageId = messageContext.properties.messageId ?: messageContext.consumerTag
+        String messageId = getMessageId(messageContext)
         try {
             if (!acceptedContentType(messageContext)) {
                 handleException(new UnacceptableMimeTypeException('BURST11', rabbitConfig.queue, messageContext.properties.contentType),
