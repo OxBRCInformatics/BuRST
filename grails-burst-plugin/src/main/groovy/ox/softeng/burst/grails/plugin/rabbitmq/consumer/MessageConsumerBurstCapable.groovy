@@ -78,7 +78,7 @@ trait MessageConsumerBurstCapable extends BurstCapable {
                 queue      : messageContext.envelope.routingKey,
                 consumerTag: messageContext.consumerTag,
                 messageId  : messageContext.properties.messageId,
-                timestamp  : messageContext.properties.timestamp.toString() ?: OffsetDateTime.now(ZoneId.of('UTC')),
+                timestamp  : messageContext.properties.timestamp?.toString() ?: OffsetDateTime.now(ZoneId.of('UTC')).toString(),
                 application: messageContext.properties.appId ?: source
 
         ]
