@@ -22,6 +22,7 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         super(resource, readOnly)
     }
 
+    abstract List<String> getTopics()
     abstract Map<String, String> extractRelevantMetadataFromGeneratedInstance(T instance)
 
     /**
@@ -36,14 +37,14 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
 
         // Binding failed so we have nothing to extract for metadata
         if (instance instanceof Errors) {
-            handleNoIdErrors(instance, 'VAL03', [:])
+            handleNoIdErrors(instance, 'VAL03', getTopics(), [:])
             return respond(UNPROCESSABLE_ENTITY, object)
         }
 
         instance.validate()
 
         if (instance.hasErrors()) {
-            handleNoIdErrors instance.errors as Errors, 'VAL04', extractRelevantMetadataFromGeneratedInstance(instance)
+            handleNoIdErrors instance.errors as Errors, 'VAL04', getTopics(), extractRelevantMetadataFromGeneratedInstance(instance)
             transactionStatus.setRollbackOnly()
             respond instance.errors, view: 'create' // STATUS CODE 422
             return
@@ -54,7 +55,7 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         } catch (RuntimeException exception) {
             BurstException burstException = new BurstException('BURST01', 'Failed to save resource', exception)
             ((Errors) instance.errors).reject('failed.save', [burstException.message] as Object[], 'Failed to save resource because {0}')
-            handleNoIdException(burstException, extractRelevantMetadataFromGeneratedInstance(instance as T))
+            handleNoIdException(burstException, getTopics(), extractRelevantMetadataFromGeneratedInstance(instance as T))
             respond instance.errors, view: 'edit', status: 500
         }
 
@@ -93,7 +94,7 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         instance.properties = getObjectToBind()
 
         if (instance.hasErrors()) {
-            handleNoIdErrors instance.errors as Errors, 'VAL05', extractRelevantMetadataFromGeneratedInstance(instance)
+            handleNoIdErrors instance.errors as Errors, 'VAL05', getTopics(), extractRelevantMetadataFromGeneratedInstance(instance)
             transactionStatus.setRollbackOnly()
             respond instance.errors, view: 'edit' // STATUS CODE 422
             return
@@ -104,7 +105,7 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         } catch (RuntimeException exception) {
             BurstException burstException = new BurstException('BURST02', 'Failed to update resource', exception)
             ((Errors) instance.errors).reject('failed.save', [burstException.message] as Object[], 'Failed to save resource because {0}')
-            handleNoIdException(burstException, extractRelevantMetadataFromGeneratedInstance(instance as T))
+            handleNoIdException(burstException, getTopics(), extractRelevantMetadataFromGeneratedInstance(instance as T))
             respond instance.errors, view: 'edit', status: 500
         }
 

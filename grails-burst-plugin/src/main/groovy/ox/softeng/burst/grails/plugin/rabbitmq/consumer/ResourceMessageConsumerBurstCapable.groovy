@@ -24,7 +24,8 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
         String messageId = getMessageId(messageContext)
         try {
             if (!acceptedContentType(messageContext)) {
-                handleException(new UnacceptableMimeTypeException('BURST08', rabbitConfig.queue, messageContext.properties.contentType),
+                handleException(new UnacceptableMimeTypeException('BURST08', rabbitConfig.queue as String,
+                                                                  messageContext.properties.contentType),
                                 messageId, messageContext)
                 return respond(NOT_ACCEPTABLE, messageId, messageContext, body)
             }

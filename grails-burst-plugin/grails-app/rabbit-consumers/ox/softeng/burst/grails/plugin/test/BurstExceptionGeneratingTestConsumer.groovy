@@ -28,7 +28,7 @@ class BurstExceptionGeneratingTestConsumer implements TypedMessageConsumerBurstC
     }
 
     @Override
-    List<String> getTopics() {
+    List<String> getContextTopics(MessageContext messageContext) {
         ['Test', 'Exceptions']
     }
 }

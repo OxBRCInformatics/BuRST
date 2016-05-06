@@ -45,7 +45,7 @@ class BurstService {
         StringWriter writer = new StringWriter()
         JAXB.marshal(message, writer)
 
-        logger.info("Broadcasting BuRST message")
+        logger.debug("Broadcasting BuRST message")
         logger.trace("{}", message)
         rabbitMessagePublisher.send {
             routingKey = 'burst'
@@ -57,92 +57,81 @@ class BurstService {
         broadcastMessage(new MessageDTO().with(closure))
     }
 
-    void broadcastNoticeMessage(String message, String mSource, String mTitle, List<String> mTopics, Map<String, String> metadataMap = [:]) {
-        broadcastSeverityMessage(SeverityEnum.NOTICE, message, mSource, mTitle, mTopics, metadataMap)
+    void broadcastCriticalMessage(String message, String source, String title, List<String> topics, Map<String, String> metadata = [:]) {
+        broadcastSeverityMessage(SeverityEnum.CRITICAL, message, source, title, topics, metadata)
     }
 
-    void broadcastInformationMessage(String message, String mSource, String mTitle, List<String> mTopics, Map<String, String> metadataMap = [:]) {
-        broadcastSeverityMessage(SeverityEnum.INFORMATIONAL, message, mSource, mTitle, mTopics, metadataMap)
+    void broadcastWarningMessage(String message, String source, String title, List<String> topics, Map<String, String> metadata = [:]) {
+        broadcastSeverityMessage(SeverityEnum.WARNING, message, source, title, topics, metadata)
     }
 
-    @TypeChecked(TypeCheckingMode.SKIP)
-    void broadcastSeverityMessage(SeverityEnum mSeverity, String message, String mSource, String mTitle, List<String> mTopics,
-                                  Map<String, String> metadataMap = [:]) {
-        broadcastMessage {
-            dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
-            severity = mSeverity
-            details = message
-            source = mSource
-            topics = mTopics
-            metadataMap.each {k, v ->
-                addToMetadata(k, v ?: 'unknown')
-            }
-            title = mTitle
-            it
-        }
+    void broadcastErrorMessage(String message, String source, String title, List<String> topics, Map<String, String> metadata = [:]) {
+        broadcastSeverityMessage(SeverityEnum.ERROR, message, source, title, topics, metadata)
     }
 
-    void broadcastException(BurstException ex, String title, List<String> topics, Map<String, String> metadataMap = [:]) {
-        broadcastException(ex, appName, title, '????', topics, metadataMap)
+    void broadcastNoticeMessage(String message, String source, String title, List<String> topics, Map<String, String> metadata = [:]) {
+        broadcastSeverityMessage(SeverityEnum.NOTICE, message, source, title, topics, metadata)
     }
 
-    void broadcastException(BurstException ex, String title, String id, List<String> topics, Map<String, String> metadataMap = [:]) {
-        broadcastException(ex, appName, title, id, topics, metadataMap)
+    void broadcastInformationMessage(String message, String source, String title, List<String> topics, Map<String, String> metadata = [:]) {
+        broadcastSeverityMessage(SeverityEnum.INFORMATIONAL, message, source, title, topics, metadata)
     }
 
-    @TypeChecked(TypeCheckingMode.SKIP)
-    void broadcastException(BurstException ex, String exSource, String exTitle, String id, List<String> exTopics,
-                            Map<String, String> metadataMap = [:]) {
-        OffsetDateTime odt = OffsetDateTime.now(ZoneId.of('UTC'))
-        broadcastMessage {
-            dateTimeCreated = odt
-            severity = SeverityEnum.CRITICAL
-            details = "Exception occurred inside $exSource while processing $id::\n\n" +
-                      "${ex.getMessage()}\n\n" +
-                      "Please contact ${organisation} and inform of the errorcode ${ex.errorCode} at time ${odt}"
-            source = exSource
-            topics = exTopics
-            metadataMap.each {k, v ->
-                addToMetadata(k, v ?: 'unknown')
-            }
-            title = exTitle
-            it
-        }
+    void broadcastException(BurstException ex, String title, List<String> topics, Map<String, String> metadata = [:]) {
+        broadcastException(ex, appName, title, '????', topics, metadata)
     }
 
-    void broadcastErrors(Errors errors, String errorCode, String title, String id, List<String> topics, Map<String, String> metadataMap = [:]) {
-        broadcastErrors(errors, errorCode, appName, title, id, topics, metadataMap)
+    void broadcastException(BurstException ex, String title, String id, List<String> topics, Map<String, String> metadata = [:]) {
+        broadcastException(ex, appName, title, id, topics, metadata)
+    }
+
+    void broadcastException(BurstException ex, String source, String title, String id, List<String> exTopics,
+                            Map<String, String> metadata = [:]) {
+        broadcastCriticalMessage("Exception occurred inside $source while processing $id::\n\n" +
+                                 "${ex.getMessage()}\n\n" +
+                                 "Please contact ${organisation} and inform of the errorcode ${ex.errorCode} at time " +
+                                 "${OffsetDateTime.now(ZoneId.of('UTC'))}",
+                                 source, title, exTopics, metadata)
+    }
+
+    void broadcastErrors(Errors errors, String errorCode, String title, String id, List<String> topics, Map<String, String> metadata = [:]) {
+        broadcastErrors(errors, errorCode, appName, title, id, topics, metadata)
     }
 
     String getResourceName(String fullResourceName) {
         stripResourceNames ? fullResourceName.replaceAll(/\w+\./, '') : fullResourceName
     }
 
-    @TypeChecked(TypeCheckingMode.SKIP)
-    void broadcastErrors(Errors errors, String errorCode, String exSource, String exTitle, String id, List<String> exTopics,
-                         Map<String, String> metadataMap = [:]) {
+    void broadcastErrors(Errors errors, String errorCode, String source, String title, String id, List<String> topics,
+                         Map<String, String> metadata = [:]) {
 
-        StringBuilder exDetails = new StringBuilder("$errorCode - ")
+        StringBuilder details = new StringBuilder("$errorCode - ")
         if (errors instanceof ValidationErrors) {
-            exDetails.append 'Validation '
+            details.append 'Validation '
         }
 
-        exDetails.append "Errors from $exSource while trying to process resource ${getResourceName(errors.objectName)} for $id::\n\n"
+        details.append "Errors from $source while trying to process resource ${getResourceName(errors.objectName)} for $id::\n\n"
 
         errors.allErrors.each {error ->
-            exDetails.append "  - ${messageSource.getMessage(error, Locale.default)}\n"
+            details.append "  - ${messageSource.getMessage(error, Locale.default)}\n"
         }
 
+        broadcastErrorMessage(details.toString(), source, title, topics, metadata)
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    void broadcastSeverityMessage(SeverityEnum mSeverity, String message, String mSource, String mTitle, List<String> mTopics,
+                                  Map<String, String> metadata = [:]) {
         broadcastMessage {
             dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
-            severity = SeverityEnum.ERROR
-            details = exDetails.toString()
-            source = exSource
-            topics = exTopics
-            metadataMap.each {k, v ->
+            severity = mSeverity
+            details = message
+            source = mSource
+            topics = mTopics
+            metadata.each {k, v ->
                 addToMetadata(k, v ?: 'unknown')
             }
-            title = exTitle
+            title = mTitle
             it
         }
     }

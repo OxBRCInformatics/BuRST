@@ -2,6 +2,9 @@ package ox.softeng.burst.grails.plugin.rabbitmq.consumer
 
 import com.budjb.rabbitmq.consumer.MessageContext
 import grails.web.mime.MimeType
+import groovy.transform.CompileStatic
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import groovy.util.slurpersupport.GPathResult
 import groovy.xml.MarkupBuilder
 import org.springframework.http.HttpStatus
@@ -15,23 +18,27 @@ import java.time.ZoneId
 /**
  * @since 01/03/2016
  */
+@CompileStatic
 trait MessageConsumerBurstCapable extends BurstCapable {
 
     List<MimeType> getContentTypes() {
         [MimeType.ALL]
     }
 
+    abstract List<String> getContextTopics(MessageContext messageContext)
+
     abstract String getMessageId(MessageContext messageContext)
 
     def respond(HttpStatus status, String messageId, MessageContext messageContext, def object) {
-        respond(status, messageId, object, getDefaultMetadata(messageContext))
+        respond(status, messageId, object, getContextTopics(messageContext), getDefaultMetadata(messageContext))
     }
 
     def respond(HttpStatus status, String messageId, MessageContext messageContext, def object, Map<String, String> metadataMap) {
-        respond(status, messageId, object, getDefaultMetadata(messageContext) + metadataMap)
+        respond(status, messageId, object, getContextTopics(messageContext), getDefaultMetadata(messageContext) + metadataMap)
     }
 
-    def respond(HttpStatus status, String messageId, def object, Map<String, String> metadataMap) {
+    @TypeChecked(TypeCheckingMode.SKIP)
+    def respond(HttpStatus status, String messageId, def object, List<String> topics, Map<String, String> metadataMap) {
 
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
@@ -50,7 +57,7 @@ trait MessageConsumerBurstCapable extends BurstCapable {
             logger.warn('{} - Response: {}', messageId, "${status.value()} ${status.reasonPhrase}")
         }
 
-        broadcastNoticeMessage message, messageId, title, metadataMap
+        broadcastNoticeMessage message, messageId, title, topics, metadataMap
 
         String response = writer.toString()
         if (object instanceof GPathResult) return new XmlSlurper().parseText(response)
@@ -71,38 +78,38 @@ trait MessageConsumerBurstCapable extends BurstCapable {
                 queue      : messageContext.envelope.routingKey,
                 consumerTag: messageContext.consumerTag,
                 messageId  : messageContext.properties.messageId,
-                timestamp  : messageContext.properties.timestamp.toString(),
-                application: messageContext.properties.appId
+                timestamp  : messageContext.properties.timestamp.toString() ?: OffsetDateTime.now(ZoneId.of('UTC')),
+                application: messageContext.properties.appId ?: source
 
         ]
         messageContext.properties.headers.each {k, v ->
             md.put(k, v as String)
         }
-        md
+        md as Map<String, String>
     }
 
     void handleException(BurstException ex, String messageId, MessageContext messageContext) {
-        handleException(ex, messageId, getDefaultMetadata(messageContext))
+        handleException(ex, messageId, getContextTopics(messageContext), getDefaultMetadata(messageContext))
     }
 
     void handleException(BurstException ex, String messageId, MessageContext messageContext, Map<String, String> metadataMap) {
-        handleException(ex, messageId, getDefaultMetadata(messageContext) + metadataMap)
+        handleException(ex, messageId, getContextTopics(messageContext), getDefaultMetadata(messageContext) + metadataMap)
     }
 
     void handleErrors(Errors errors, String errorCode, String messageId, String title, MessageContext messageContext) {
-        handleErrors(errors, errorCode, messageId, title, getDefaultMetadata(messageContext))
+        handleErrors(errors, errorCode, messageId, title, getContextTopics(messageContext), getDefaultMetadata(messageContext))
     }
 
     void handleErrors(Errors errors, String errorCode, String messageId, MessageContext messageContext) {
-        handleErrors(errors, errorCode, messageId, getDefaultMetadata(messageContext))
+        handleErrors(errors, errorCode, messageId, getContextTopics(messageContext), getDefaultMetadata(messageContext))
     }
 
     void handleErrors(Errors errors, String errorCode, String messageId, String title, MessageContext messageContext,
                       Map<String, String> metadataMap) {
-        handleErrors(errors, errorCode, messageId, title, getDefaultMetadata(messageContext) + metadataMap)
+        handleErrors(errors, errorCode, messageId, title, getContextTopics(messageContext), getDefaultMetadata(messageContext) + metadataMap)
     }
 
     void handleErrors(Errors errors, String errorCode, String messageId, MessageContext messageContext, Map<String, String> metadataMap) {
-        handleErrors(errors, errorCode, messageId, getDefaultMetadata(messageContext) + metadataMap)
+        handleErrors(errors, errorCode, messageId, getContextTopics(messageContext), getDefaultMetadata(messageContext) + metadataMap)
     }
 }
