@@ -1,14 +1,12 @@
 package ox.softeng.burst.grails.plugin
 
 import grails.plugins.Plugin
-import grails.util.Environment
 import ox.softeng.burst.grails.plugin.rabbitmq.databinding.StringXmlDataBindingSourceCreator
-import ox.softeng.burst.grails.plugin.test.BrokenXmlDataBindingSourceCreator
 
 class BurstGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "3.1.1 > *"
+    def grailsVersion = "3.1.5 > *"
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
             "grails-app/views/error.gsp",

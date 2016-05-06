@@ -61,7 +61,7 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
 
         // Binding failed so we have nothing to extract for metadata
         if (instance instanceof Errors) {
-            handleErrors(instance, 'BURSTVAL01', messageId, messageContext)
+            handleErrors(instance, 'VAL01', messageId, messageContext)
             return UNPROCESSABLE_ENTITY
         }
 
@@ -70,7 +70,7 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
         instance.validate()
         // If errors here then object has data but does not pass validation constraints
         if (instance.hasErrors()) {
-            handleErrors instance.errors as Errors, 'BURSTVAL02', messageId, messageContext,
+            handleErrors instance.errors as Errors, 'VAL02', messageId, messageContext,
                          extractRelevantMetadataFromGeneratedInstance(instance as R)
             return UNPROCESSABLE_ENTITY
         }

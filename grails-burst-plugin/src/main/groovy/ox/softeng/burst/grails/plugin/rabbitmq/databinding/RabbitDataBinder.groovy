@@ -2,6 +2,7 @@ package ox.softeng.burst.grails.plugin.rabbitmq.databinding
 
 import com.budjb.rabbitmq.consumer.MessageContext
 import grails.web.mime.MimeType
+import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.springframework.validation.BindingResult
 import ox.softeng.burst.grails.plugin.rabbitmq.exception.UnknownMimeTypeException
@@ -9,6 +10,7 @@ import ox.softeng.burst.grails.plugin.rabbitmq.exception.UnknownMimeTypeExceptio
 /**
  * @since 19/02/2016
  */
+@CompileStatic
 trait RabbitDataBinder {
 
     abstract Logger getLogger()

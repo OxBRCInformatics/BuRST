@@ -10,6 +10,7 @@ import grails.validation.ValidationErrors
 import grails.web.databinding.DataBindingUtils
 import grails.web.databinding.GrailsWebDataBinder
 import grails.web.mime.MimeType
+import groovy.transform.CompileStatic
 import org.grails.core.artefact.DomainClassArtefactHandler
 import org.grails.web.databinding.DefaultASTDatabindingHelper
 import org.grails.web.databinding.bindingsource.DataBindingSourceRegistry
@@ -29,6 +30,7 @@ import static grails.web.databinding.DataBindingUtils.DATA_BINDER_BEAN_NAME
 /**
  * @since 19/02/2016
  */
+@CompileStatic
 public class RabbitDataBindingUtils {
 
     private static final String BLANK = "";

@@ -2,6 +2,7 @@ package ox.softeng.burst.grails.plugin.rabbitmq.databinding
 
 import grails.databinding.DataBindingSource
 import grails.web.mime.MimeType
+import groovy.transform.CompileStatic
 import groovy.util.slurpersupport.GPathResult
 import org.grails.web.databinding.bindingsource.XmlDataBindingSourceCreator
 import org.xml.sax.SAXException
@@ -9,6 +10,7 @@ import org.xml.sax.SAXException
 /**
  * @since 22/02/2016
  */
+@CompileStatic
 class StringXmlDataBindingSourceCreator extends XmlDataBindingSourceCreator {
 
     @Override
