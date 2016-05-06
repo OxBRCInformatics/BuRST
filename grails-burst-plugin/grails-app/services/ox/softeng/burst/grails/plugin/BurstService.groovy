@@ -1,6 +1,10 @@
 package ox.softeng.burst.grails.plugin
 
 import com.budjb.rabbitmq.publisher.RabbitMessagePublisher
+import grails.compiler.GrailsCompileStatic
+import grails.validation.ValidationErrors
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,6 +19,7 @@ import javax.xml.bind.JAXB
 import java.time.OffsetDateTime
 import java.time.ZoneId
 
+@GrailsCompileStatic
 class BurstService {
 
     static transactional = false
@@ -27,6 +32,12 @@ class BurstService {
     @Value('${info.app.name}')
     String appName
 
+    @Value('${burst.strip.resource.name:false}')
+    Boolean stripResourceNames
+
+    @Value('${burst.source.application.organisation:Oxford BRC Informatics}')
+    String organisation
+
     MessageSource messageSource
 
     void broadcastMessage(MessageDTO message) {
@@ -35,7 +46,7 @@ class BurstService {
         JAXB.marshal(message, writer)
 
         logger.info("Broadcasting BuRST message")
-        logger.debug("{}", message)
+        logger.trace("{}", message)
         rabbitMessagePublisher.send {
             routingKey = 'burst'
             body = writer.toString()
@@ -46,58 +57,92 @@ class BurstService {
         broadcastMessage(new MessageDTO().with(closure))
     }
 
-    void broadcastInformationMessage(String message, String mSource,List<String> mTopics, Map<String, String> metadataMap = [:]){
+    void broadcastNoticeMessage(String message, String mSource, String mTitle, List<String> mTopics, Map<String, String> metadataMap = [:]) {
+        broadcastSeverityMessage(SeverityEnum.NOTICE, message, mSource, mTitle, mTopics, metadataMap)
+    }
+
+    void broadcastInformationMessage(String message, String mSource, String mTitle, List<String> mTopics, Map<String, String> metadataMap = [:]) {
+        broadcastSeverityMessage(SeverityEnum.INFORMATIONAL, message, mSource, mTitle, mTopics, metadataMap)
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    void broadcastSeverityMessage(SeverityEnum mSeverity, String message, String mSource, String mTitle, List<String> mTopics,
+                                  Map<String, String> metadataMap = [:]) {
         broadcastMessage {
             dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
-            severity = SeverityEnum.INFORMATIONAL
+            severity = mSeverity
             details = message
             source = mSource
             topics = mTopics
             metadataMap.each {k, v ->
                 addToMetadata(k, v ?: 'unknown')
             }
+            title = mTitle
             it
         }
     }
 
-    void broadcastException(BurstException ex, List<String> topics, Map<String, String> metadataMap = [:]) {
-        broadcastException(ex, appName, topics, metadataMap)
+    void broadcastException(BurstException ex, String title, List<String> topics, Map<String, String> metadataMap = [:]) {
+        broadcastException(ex, appName, title, '????', topics, metadataMap)
     }
 
-    void broadcastException(BurstException ex, String exSource, List<String> exTopics, Map<String, String> metadataMap = [:]) {
+    void broadcastException(BurstException ex, String title, String id, List<String> topics, Map<String, String> metadataMap = [:]) {
+        broadcastException(ex, appName, title, id, topics, metadataMap)
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    void broadcastException(BurstException ex, String exSource, String exTitle, String id, List<String> exTopics,
+                            Map<String, String> metadataMap = [:]) {
+        OffsetDateTime odt = OffsetDateTime.now(ZoneId.of('UTC'))
         broadcastMessage {
-            dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
+            dateTimeCreated = odt
             severity = SeverityEnum.CRITICAL
-            details = ex.getMessage()
+            details = "Exception occurred inside $exSource while processing $id::\n\n" +
+                      "${ex.getMessage()}\n\n" +
+                      "Please contact ${organisation} and inform of the errorcode ${ex.errorCode} at time ${odt}"
             source = exSource
             topics = exTopics
             metadataMap.each {k, v ->
                 addToMetadata(k, v ?: 'unknown')
             }
+            title = exTitle
             it
         }
     }
 
-    void broadcastErrors(Errors errors, String errorCode, List<String> topics, Map<String, String> metadataMap = [:]) {
-        broadcastErrors(errors, errorCode, appName, topics, metadataMap)
+    void broadcastErrors(Errors errors, String errorCode, String title, String id, List<String> topics, Map<String, String> metadataMap = [:]) {
+        broadcastErrors(errors, errorCode, appName, title, id, topics, metadataMap)
     }
 
-    void broadcastErrors(Errors errors, String errorCode, String exSource, List<String> exTopics, Map<String, String> metadataMap = [:]) {
-        String exDetails = "$errorCode - Errors while trying to process '${errors.objectName}' resource::\n"
+    String getResourceName(String fullResourceName) {
+        stripResourceNames ? fullResourceName.replaceAll(/\w+\./, '') : fullResourceName
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    void broadcastErrors(Errors errors, String errorCode, String exSource, String exTitle, String id, List<String> exTopics,
+                         Map<String, String> metadataMap = [:]) {
+
+        StringBuilder exDetails = new StringBuilder("$errorCode - ")
+        if (errors instanceof ValidationErrors) {
+            exDetails.append 'Validation '
+        }
+
+        exDetails.append "Errors from $exSource while trying to process resource ${getResourceName(errors.objectName)} for $id::\n\n"
 
         errors.allErrors.each {error ->
-            exDetails += "  ${messageSource.getMessage(error, Locale.default)}\n"
+            exDetails.append "  - ${messageSource.getMessage(error, Locale.default)}\n"
         }
 
         broadcastMessage {
             dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
             severity = SeverityEnum.ERROR
-            details = exDetails
+            details = exDetails.toString()
             source = exSource
             topics = exTopics
             metadataMap.each {k, v ->
                 addToMetadata(k, v ?: 'unknown')
             }
+            title = exTitle
             it
         }
     }

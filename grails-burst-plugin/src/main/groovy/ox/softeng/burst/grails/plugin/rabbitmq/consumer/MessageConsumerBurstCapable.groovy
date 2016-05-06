@@ -6,7 +6,6 @@ import groovy.util.slurpersupport.GPathResult
 import groovy.xml.MarkupBuilder
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
-import ox.softeng.burst.domain.SeverityEnum
 import ox.softeng.burst.grails.plugin.BurstCapable
 import ox.softeng.burst.grails.plugin.exception.BurstException
 
@@ -36,10 +35,22 @@ trait MessageConsumerBurstCapable extends BurstCapable {
         def xml = new MarkupBuilder(writer)
         xml.response "${status.value()} ${status.reasonPhrase}"
 
-        String response = writer.toString()
-        logger.debug('{} - Response: {}', messageId, response)
-        broadcastInformationMessage(response, messageId,metadataMap)
+        String title
+        String message
+        if (status.'1xxInformational' || status.'2xxSuccessful') {
+            title = "$messageId SUCCESSFULLY processed at ${OffsetDateTime.now(ZoneId.of('UTC'))}"
+            message = "$messageId was successfully ${status.reasonPhrase}"
+            logger.debug('{} - Response: {}', messageId, "${status.value()} ${status.reasonPhrase}")
+        }
+        else {
+            title = "$messageId FAILED processing at ${OffsetDateTime.now(ZoneId.of('UTC'))}"
+            message = "$messageId failed processing due to '${status.reasonPhrase}'. Please see other messages to determine why."
+            logger.warn('{} - Response: {}', messageId, "${status.value()} ${status.reasonPhrase}")
+        }
 
+        broadcastNoticeMessage message, messageId, title, metadataMap
+
+        String response = writer.toString()
         if (object instanceof GPathResult) return new XmlSlurper().parseText(response)
         try {
             return response.asType(object.class)
