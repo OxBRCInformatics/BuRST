@@ -7,6 +7,7 @@ import grails.databinding.DataBindingSource
 import grails.util.Environment
 import grails.util.Holders
 import grails.validation.ValidationErrors
+import grails.validation.ValidationException
 import grails.web.databinding.DataBindingUtils
 import grails.web.databinding.GrailsWebDataBinder
 import grails.web.mime.MimeType
@@ -98,8 +99,14 @@ public class RabbitDataBindingUtils {
                                                    [invalid.cause.message] as Object[],
                                                    defaultMessage));
         } catch (Exception e) {
-            bindingResult = new BeanPropertyBindingResult(object, object.getClass().getName());
-            bindingResult.addError(new ObjectError(bindingResult.getObjectName(), e.getMessage()));
+            if (e.cause instanceof ValidationException) {
+                ValidationException ve = e.cause as ValidationException
+                bindingResult = ve.getErrors() as BeanPropertyBindingResult
+            }
+            else {
+                bindingResult = new BeanPropertyBindingResult(object, object.getClass().getName());
+                bindingResult.addError(new ObjectError(bindingResult.getObjectName(), e.getMessage()));
+            }
         }
 
         if (domain != null && bindingResult != null) {
