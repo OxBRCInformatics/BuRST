@@ -14,6 +14,7 @@ cache:
 notifications:
   slack:
     secure: FChGsLT3Xz0ava0Pxpuk3Qgd5EyNK+HkI5TgY3Dhaspke2egocWkgc4Mc7b+MtXdUXGV6s2vxFrqTO+/D49zN8jDPuegpvc+jF+NnrfvjlOuHnsycEOPEA6v9E+9ktrayyJ2We5UqINhEFq94Kw1a/FRzQjwCTGe0GSq3Jkb8MWfNgcMgr440OljXUFgNMXiukj93HVHJAsnq1x8AAXIDjKY1fy6FtAiAqyRhf08AWMPSLytFZ76FxdOWDkO+piYClrWmCkqkLGVJwPZZx91zx7820NK4Fk6PkmqRhYMubjVxQr7SzWA7XzvTDpNyfsPUHOARHkprxoCGq1LQuyviKIPAVKBgZfuK34rAbhMccsf0UsoEqPyr7KzjjmBXkGKBiF8qdPxampZE0ZzGW2l4+i9B9faI+WrnpyB1qSScIA0SUx6CV9G5FsMOf9obu7W7RC6TPeHzuPp3cLSdvvTqRdGMmELmWtElybGANIfzH0SVlv3AVrWXoFsd7wpGySiue2mVhxbKz/WH/rJr8Op+BGOdM4T7zQZ0LaA2kIuuN929B9ppdIabweyK48cQZuawZC5Ymchs8OjODhxy3O7ekmCqxrus9n3OTVrbqs88sUQ5WA5tzesGYkmTEJIEdeqxXLIlrDzlj+yjWCB7cwLHgrS9adqL+pPsr1F1DBmmrs=
+  email: false
 after_success:
 - ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ] && ./gradlew bintrayUpload --info
 env:
