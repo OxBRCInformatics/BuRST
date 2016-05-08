@@ -1,5 +1,7 @@
 package ox.softeng.burst.services;
 
+import ox.softeng.burst.domain.SeverityEnum;
+import ox.softeng.burst.domain.report.Message;
 import ox.softeng.burst.domain.subscription.Severity;
 import ox.softeng.burst.domain.subscription.Subscription;
 import ox.softeng.burst.domain.subscription.User;
@@ -7,7 +9,6 @@ import ox.softeng.burst.domain.subscription.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -17,8 +18,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class ReportScheduler implements Runnable {
 
@@ -36,7 +36,7 @@ public class ReportScheduler implements Runnable {
         smtpHost = props.getProperty("smtp-host");
         smtpUsername = props.getProperty("smtp-username");
         smtpPassword = props.getProperty("smtp-password");
-        defaultEmailSubject = props.getProperty("default-email-subject", "Burst Reporting Message");
+        defaultEmailSubject = props.getProperty("default-email-subject", "BuRST Reporting Message");
     }
 
     @Override
@@ -65,41 +65,31 @@ public class ReportScheduler implements Runnable {
                     User user = s.getSubscriber();
 
                     // For each of those, we find all the matching messages
-                    List<ox.softeng.burst.domain.report.Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
+                    List<Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
 
-                    StringBuilder emailContent = new StringBuilder();
-                    int count = 0;
                     logger.trace("Generating email content for {} subscription topics", s.getTopics().size());
-                    String msgSubject = defaultEmailSubject;
-                    for (ox.softeng.burst.domain.report.Message msg : matchedMessages) {
+                    int count = 0;
+                    Map<SeverityEnum, List<Message>> emailContents = new HashMap<>();
+                    for (Message msg : matchedMessages) {
                         logger.trace("Checking message with {} topics", msg.getTopics().size());
 
                         // Can't get this working within the query itself
                         // Every topic in the subscription must be contained in the message
                         if (s.getTopics().stream().allMatch(msg.getTopics()::contains)) {
                             // We send a message with the concatenation of all the messages
-                            emailContent.append(msg.getMessage()).append("\n\n----\n\n");
-                            msgSubject = msg.getTitle();
+                            List<Message> msgs = emailContents.getOrDefault(msg.getSeverity(), new ArrayList<>());
+                            msgs.add(msg);
+                            emailContents.put(msg.getSeverity(), msgs);
                             count++;
                         }
                     }
                     logger.debug("Email generated for {} messages", count);
 
-                    if (count > 0) {
+                    if (emailContents.size() > 0) {
 
-                        String fName = user.getFirstName() == null ? "Unknown" : user.getFirstName();
-                        String sName = user.getLastName() == null ? "Person" : user.getLastName();
-                        String grammar = count == 1 ? "message has" : "messages have";
-                        String header = "To " + fName + " " + sName +
-                                        "\n\nThe following " + grammar + " been logged in BuRST matching your subscription:\n\n";
-
-                        emailContent.insert(0, header);
-                        emailContent.append("kind regards\n\nThe BuRST Service");
-
-                        logger.debug("Sending an email to: " + s.getSubscriber().getEmailAddress());
-                        logger.trace("Content: \n{}", emailContent.toString());
-                        String subj = count == 1 ? msgSubject : defaultEmailSubject;
-                        sendMessage(user.getEmailAddress(), subj, emailContent.toString());
+                        String emailContent = generateEmailContents(emailContents, user, count);
+                        String emailSubject = generateEmailSubject(emailContents, count);
+                        sendMessage(user.getEmailAddress(), emailSubject, emailContent);
                     }
 
                     // Then we re-calculate the "last sent" and "next send" timestamps and update the record
@@ -114,28 +104,70 @@ public class ReportScheduler implements Runnable {
         Subscription.initialiseSubscriptions(entityManagerFactory);
     }
 
-    private List<ox.softeng.burst.domain.report.Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime,
-                                                                                     Severity severity) {
+    private List<Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime,
+                                                      Severity severity) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         logger.trace("Creating message query with [Date '{}', Last run Date '{}', Severity '{}']",
                      runTime, subscription.getLastScheduledRun(), severity.getSeverity());
-        TypedQuery<ox.softeng.burst.domain.report.Message> msgQuery = entityManager.createNamedQuery("message.MatchedMessages",
-                                                                                                     ox.softeng.burst.domain.report.Message.class);
+        TypedQuery<Message> msgQuery = entityManager.createNamedQuery("message.MatchedMessages", Message.class);
         msgQuery.setParameter("dateNow", runTime);
         msgQuery.setParameter("lastSentDate", subscription.getLastScheduledRun());
         msgQuery.setParameter("severity", severity.getSeverity().ordinal());
         //msgQuery.setParameter("topics", s.getTopics());
         //msgQuery.setParameter("topicsSize", s.getTopics().size());
         logger.trace("Getting matching messages");
-        List<ox.softeng.burst.domain.report.Message> matchedMessages = msgQuery.getResultList();
+        List<Message> matchedMessages = msgQuery.getResultList();
         logger.debug("Subscription {} has {} potential matching messages", subscription.getId(), matchedMessages.size());
         entityManager.close();
 
         return matchedMessages;
     }
 
+    private String generateEmailContents(Map<SeverityEnum, List<Message>> emailContents, User user, int count) {
+        StringBuilder emailContent = new StringBuilder();
+
+        String fName = user.getFirstName() == null ? "Unknown" : user.getFirstName();
+        String sName = user.getLastName() == null ? "Person" : user.getLastName();
+        String grammar = count == 1 ? "message has" : "messages have";
+        String header = "To " + fName + " " + sName +
+                        "\n\nThe following " + grammar + " been logged in BuRST matching your subscription:\n\n";
+
+        emailContent.append(header);
+
+        // Add the messages in severity reverse order.
+        // So most important first
+        emailContents.keySet().stream()
+                .sorted((o1, o2) -> o1.compareTo(o2) * -1)
+                .forEachOrdered(severityEnum -> {
+                    List<Message> msgs = emailContents.get(severityEnum);
+                    emailContent.append(msgs.size()).append(" ").append(severityEnum.toString());
+                    if (msgs.size() == 1) emailContent.append(" message\n\n");
+                    else emailContent.append(" messages\n\n");
+                    msgs.forEach(msg -> emailContent.append(msg.getMessage()).append("\n\n----\n\n"));
+                    emailContent.append("------ End of ").append(severityEnum.toString()).append(" messages ------\n\n");
+                });
+
+        emailContent.append("Kind Regards\n\nThe BuRST Service");
+        logger.trace("Content: \n{}", emailContent.toString());
+        return emailContent.toString();
+    }
+
+    private String generateEmailSubject(Map<SeverityEnum, List<Message>> emailContents, int count) {
+        // put the number of each msg severity in the subject title
+        StringBuilder emailSubject = new StringBuilder(defaultEmailSubject).append(": ");
+        if (count == 1) {
+            emailSubject.append(emailContents.values().stream().findFirst().get().get(0).getTitle());
+        } else {
+            emailContents.forEach((severityEnum, messages) ->
+                                          emailSubject.append(messages.size()).append(" ").append(severityEnum.toString()).append(", ")
+                                 );
+        }
+        return emailSubject.toString();
+    }
+
     private void sendMessage(String emailAddress, String subject, String contents) {
+        logger.debug("Sending an email to: " + emailAddress);
         // Get system properties
         Properties properties = System.getProperties();
         // Setup mail server
@@ -159,7 +191,7 @@ public class ReportScheduler implements Runnable {
             // Set From: header field of the header.
             message.setFrom(new InternetAddress(emailsFrom));
             // Set To: header field of the header.
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailAddress));
+            message.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(emailAddress));
             // Set Subject: header field
             message.setSubject(subject);
             // Now set the actual message contents
