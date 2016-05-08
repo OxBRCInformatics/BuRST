@@ -56,7 +56,7 @@ public class ReportScheduler implements Runnable {
 
             for (Subscription s : dueSubscriptions) {
                 logger.trace("Calculating number of topics");
-                // Ensure the topics are all split, to handle comma delimited topics
+                // Ensure the topics are all split, oxbrcinformatics-docker-registry.bintray.io/file-receiverto handle comma delimited topics
                 s.tidyUpTopics(entityManagerFactory);
                 if (s.getTopics().size() == 0) {
                     logger.warn("Subscription {} for {} has no registered topics", s.getId(), s.getSubscriber().getEmailAddress());
@@ -68,7 +68,6 @@ public class ReportScheduler implements Runnable {
                     List<Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
 
                     logger.trace("Generating email content for {} subscription topics", s.getTopics().size());
-                    int count = 0;
                     Map<SeverityEnum, List<Message>> emailContents = new HashMap<>();
                     for (Message msg : matchedMessages) {
                         logger.trace("Checking message with {} topics", msg.getTopics().size());
@@ -80,15 +79,14 @@ public class ReportScheduler implements Runnable {
                             List<Message> msgs = emailContents.getOrDefault(msg.getSeverity(), new ArrayList<>());
                             msgs.add(msg);
                             emailContents.put(msg.getSeverity(), msgs);
-                            count++;
                         }
                     }
-                    logger.debug("Email generated for {} messages", count);
+                    logger.debug("Email generated for {} messages", getNumberOfMessages(emailContents));
 
                     if (emailContents.size() > 0) {
 
-                        String emailContent = generateEmailContents(emailContents, user, count);
-                        String emailSubject = generateEmailSubject(emailContents, count);
+                        String emailContent = generateEmailContents(emailContents, user);
+                        String emailSubject = generateEmailSubject(emailContents);
                         sendMessage(user.getEmailAddress(), emailSubject, emailContent);
                     }
 
@@ -104,8 +102,8 @@ public class ReportScheduler implements Runnable {
         Subscription.initialiseSubscriptions(entityManagerFactory);
     }
 
-    private List<Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime,
-                                                      Severity severity) {
+    protected List<Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime,
+                                                        Severity severity) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         logger.trace("Creating message query with [Date '{}', Last run Date '{}', Severity '{}']",
@@ -124,49 +122,84 @@ public class ReportScheduler implements Runnable {
         return matchedMessages;
     }
 
-    private String generateEmailContents(Map<SeverityEnum, List<Message>> emailContents, User user, int count) {
+    protected String generateEmailContents(Map<SeverityEnum, List<Message>> emailContents, User user) {
         StringBuilder emailContent = new StringBuilder();
 
+        int count = getNumberOfMessages(emailContents);
         String fName = user.getFirstName() == null ? "Unknown" : user.getFirstName();
         String sName = user.getLastName() == null ? "Person" : user.getLastName();
         String grammar = count == 1 ? "message has" : "messages have";
         String header = "To " + fName + " " + sName +
                         "\n\nThe following " + grammar + " been logged in BuRST matching your subscription:\n\n";
-
         emailContent.append(header);
 
-        // Add the messages in severity reverse order.
-        // So most important first
-        emailContents.keySet().stream()
-                .sorted((o1, o2) -> o1.compareTo(o2) * -1)
-                .forEachOrdered(severityEnum -> {
-                    List<Message> msgs = emailContents.get(severityEnum);
-                    emailContent.append(msgs.size()).append(" ").append(severityEnum.toString());
-                    if (msgs.size() == 1) emailContent.append(" message\n\n");
-                    else emailContent.append(" messages\n\n");
-                    msgs.forEach(msg -> emailContent.append(msg.getMessage()).append("\n\n----\n\n"));
-                    emailContent.append("------ End of ").append(severityEnum.toString()).append(" messages ------\n\n");
-                });
+        if (count == 1) {
+            Message msg = emailContents.values().stream().findFirst().get().get(0);
+            emailContent.append(msg.getMessage()).append("\n\n");
+        } else {
+            // Add the messages in severity reverse order.
+            // So most important first
+            emailContents.keySet().stream()
+                    .sorted((o1, o2) -> o1.compareTo(o2) * -1)
+                    .forEachOrdered(severityEnum -> {
+                        List<Message> msgs = emailContents.get(severityEnum);
+                        final int[] left = {msgs.size()};
+                        emailContent.append(msgs.size())
+                                .append(" ")
+                                .append(severityEnum.toString());
+                        if (msgs.size() == 1) emailContent.append(" message:\n\n");
+                        else emailContent.append(" messages:\n\n");
+                        msgs.forEach(msg -> {
+                            emailContent.append(msg.getMessage())
+                                    .append("\n\n");
+                            if (left[0] > 1) {
+                                emailContent.append("----\n\n");
+                                left[0]--;
+                            }
+                        });
+                        emailContent.append("------ End of ")
+                                .append(severityEnum.toString())
+                                .append(" messages ------\n\n");
+                    });
+        }
 
         emailContent.append("Kind Regards\n\nThe BuRST Service");
         logger.trace("Content: \n{}", emailContent.toString());
         return emailContent.toString();
     }
 
-    private String generateEmailSubject(Map<SeverityEnum, List<Message>> emailContents, int count) {
+    protected String generateEmailSubject(Map<SeverityEnum, List<Message>> emailContents) {
         // put the number of each msg severity in the subject title
-        StringBuilder emailSubject = new StringBuilder(defaultEmailSubject).append(": ");
-        if (count == 1) {
-            emailSubject.append(emailContents.values().stream().findFirst().get().get(0).getTitle());
-        } else {
-            emailContents.forEach((severityEnum, messages) ->
-                                          emailSubject.append(messages.size()).append(" ").append(severityEnum.toString()).append(", ")
-                                 );
+        StringBuilder emailSubject = new StringBuilder(defaultEmailSubject);
+        if (emailContents == null || emailContents.size() == 0) return emailSubject.toString();
+
+        emailSubject.append(": ");
+
+        if (getNumberOfMessages(emailContents) == 1) {
+            Message msg = emailContents.values().stream().findFirst().get().get(0);
+            if (msg.hasTitle()) {
+                emailSubject.append(msg.getTitle());
+                return emailSubject.toString();
+            }
         }
+
+        final int[] left = {emailContents.size()};
+        emailContents.keySet().stream()
+                .sorted((o1, o2) -> o1.compareTo(o2) * -1)
+                .forEachOrdered(severityEnum -> {
+                    Collection<Message> messages = emailContents.get(severityEnum);
+                    emailSubject.append(messages.size()).append(" ").append(severityEnum.toString());
+                    if (messages.size() > 1) emailSubject.append("s");
+                    if (left[0] > 1) {
+                        emailSubject.append(", ");
+                        left[0]--;
+                    }
+                });
+
         return emailSubject.toString();
     }
 
-    private void sendMessage(String emailAddress, String subject, String contents) {
+    protected void sendMessage(String emailAddress, String subject, String contents) {
         logger.debug("Sending an email to: " + emailAddress);
         // Get system properties
         Properties properties = System.getProperties();
@@ -216,7 +249,7 @@ public class ReportScheduler implements Runnable {
         }
     }
 
-    private void updateSubscription(Subscription subscription, OffsetDateTime lastRun) {
+    protected void updateSubscription(Subscription subscription, OffsetDateTime lastRun) {
         logger.trace("Updating last run time and scheduling next run for {}", subscription.getId());
         subscription.setLastScheduledRun(lastRun);
         subscription.calculateNextScheduledRun();
@@ -225,5 +258,11 @@ public class ReportScheduler implements Runnable {
         entityManager.merge(subscription);
         entityManager.getTransaction().commit();
         entityManager.close();
+    }
+
+    private int getNumberOfMessages(Map<SeverityEnum, List<Message>> emailContents) {
+        Collection<Message> messages = new ArrayList<>();
+        emailContents.values().forEach(messages::addAll);
+        return messages.size();
     }
 }

@@ -136,6 +136,10 @@ public class Message implements Serializable {
         this.topics = topics;
     }
 
+    public boolean hasTitle() {
+        return title != null;
+    }
+
     @PrePersist
     public void updateSeverityNumber() {
         if (severity != null) {
