@@ -125,13 +125,13 @@ class BurstService {
         broadcastMessage {
             dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
             severity = mSeverity
-            details = message
-            source = mSource
-            topics = mTopics
+            details = message.toString()
+            source = mSource.toString()
+            topics = mTopics.toString()
             metadata.each {k, v ->
-                addToMetadata(k, v ?: 'unknown')
+                addToMetadata(k.toString(), v.toString() ?: 'unknown')
             }
-            title = mTitle
+            title = mTitle.toString()
             it
         }
     }
