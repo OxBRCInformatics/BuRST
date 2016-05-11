@@ -127,7 +127,7 @@ class BurstService {
             severity = mSeverity
             details = message.toString()
             source = mSource.toString()
-            topics = mTopics.toString()
+            topics = mTopics
             metadata.each {k, v ->
                 addToMetadata(k.toString(), v.toString() ?: 'unknown')
             }
