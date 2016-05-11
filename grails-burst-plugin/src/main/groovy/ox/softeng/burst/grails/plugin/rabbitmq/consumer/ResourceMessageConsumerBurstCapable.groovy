@@ -2,11 +2,13 @@ package ox.softeng.burst.grails.plugin.rabbitmq.consumer
 
 import com.budjb.rabbitmq.consumer.MessageContext
 import grails.transaction.Transactional
+import org.grails.datastore.mapping.validation.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
 import ox.softeng.burst.grails.plugin.exception.BurstException
 import ox.softeng.burst.grails.plugin.rabbitmq.databinding.RabbitDataBinder
 import ox.softeng.burst.grails.plugin.rabbitmq.exception.UnacceptableMimeTypeException
+import ox.softeng.burst.grails.plugin.utils.Utils
 
 import java.lang.reflect.ParameterizedType
 
@@ -79,6 +81,9 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
 
         try {
             saveResource instance as R
+        } catch (ValidationException validationException) {
+            handleErrors(Utils.extractErrorsFromException(validationException), 'BURST13', messageId, messageContext)
+            return UNPROCESSABLE_ENTITY
         } catch (RuntimeException exception) {
             BurstException burstException = new BurstException('BURST10', 'Failed to save resource', exception)
             handleException(burstException, messageId, messageContext, extractRelevantMetadataFromGeneratedInstance(instance as R))
