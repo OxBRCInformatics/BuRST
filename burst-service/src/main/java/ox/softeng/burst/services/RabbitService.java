@@ -26,7 +26,7 @@ public class RabbitService implements Runnable {
     private String rabbitMQQueue;
     private Unmarshaller unmarshaller;
 
-    public RabbitService(String rabbitMQHost, Integer port, String rabbitMQExchange, String rabbitMQQueue, String username, String password,
+    public RabbitService(String rabbitMQHost, Integer port, String username, String password, String rabbitMQExchange, String rabbitMQQueue,
                          EntityManagerFactory emf) throws IOException, TimeoutException, JAXBException {
 
         ConnectionFactory factory = new ConnectionFactory();
