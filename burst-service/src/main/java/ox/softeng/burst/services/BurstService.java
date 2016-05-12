@@ -63,11 +63,12 @@ public class BurstService {
         }
 
         logger.info("Creating new RabbitMQ Service using: \n" +
-                    "  host: {}" +
-                    "  exchange: {}" +
-                    "  queue: {}", rabbitMQHost, rabbitMQExchange, rabbitMQQueue);
+                    "  host: {}:{}\n" +
+                    "  user: {}:{}\n" +
+                    "  exchange: {}\n" +
+                    "  queue: {}", rabbitMQHost, rabbitPort, rabbitUser, rabbitPassword, rabbitMQExchange, rabbitMQQueue);
         try {
-            rabbitReceiver = new RabbitService(rabbitMQHost, rabbitPort, rabbitMQExchange, rabbitUser, rabbitPassword, rabbitMQQueue,
+            rabbitReceiver = new RabbitService(rabbitMQHost, rabbitPort, rabbitUser, rabbitPassword, rabbitMQExchange, rabbitMQQueue,
                                                entityManagerFactory);
         } catch (IOException | TimeoutException e) {
             logger.error("Cannot create RabbitMQ service: " + e.getMessage(), e);
