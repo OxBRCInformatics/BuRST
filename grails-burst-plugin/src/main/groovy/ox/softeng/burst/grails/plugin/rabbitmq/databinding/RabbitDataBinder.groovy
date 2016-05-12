@@ -15,6 +15,8 @@ trait RabbitDataBinder {
 
     abstract Logger getLogger()
 
+    abstract String getMessageId(MessageContext messageContext)
+
     BindingResult bindData(target, bindingSource, MessageContext messageContext, Map includeExclude) {
         bindData target, bindingSource, messageContext, includeExclude, null
     }
@@ -43,7 +45,7 @@ trait RabbitDataBinder {
         MimeType mimeType = MimeType.configuredMimeTypes.find {it.name == contentType}
 
         if (mimeType == null) throw new UnknownMimeTypeException('ER01', contentType)
-        logger.debug('{} Mime type of data to bind: {}', messageContext.consumerTag, mimeType)
+        logger.debug('{} Mime type of data to bind: {}', getMessageId(messageContext), mimeType)
 
         RabbitDataBindingUtils.bindObjectToInstance target, bindingSource, mimeType, includeList, excludeList, filter
     }

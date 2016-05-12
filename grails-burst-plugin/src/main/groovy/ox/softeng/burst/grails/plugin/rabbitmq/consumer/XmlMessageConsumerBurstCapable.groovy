@@ -36,7 +36,7 @@ trait XmlMessageConsumerBurstCapable extends MessageConsumerBurstCapable {
     }
 
     String handleMessage(String body, MessageContext messageContext) {
-        String messageId = messageContext.properties.messageId ?: messageContext.consumerTag
+        String messageId = getMessageId(messageContext)
         try {
             if (!acceptedContentType(messageContext)) {
                 handleException(new UnacceptableMimeTypeException('BURST06', rabbitConfig.queue as String, messageContext.properties.contentType),

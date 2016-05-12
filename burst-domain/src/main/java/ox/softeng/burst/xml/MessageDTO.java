@@ -7,7 +7,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ public class MessageDTO implements Serializable{
     private static final long serialVersionUID = 1L;
 
     @XmlElement(required = true)
-    @XmlJavaTypeAdapter(OffsetDateTimeAdapter.class)
     private OffsetDateTime dateTimeCreated;
     @XmlElement(required=true)
     private String details;
@@ -125,9 +123,18 @@ public class MessageDTO implements Serializable{
         this.topics = topics;
     }
 
-    public String toString()
-    {
-        return "Message Object: " + details;
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("MessageDTO{\n");
+        sb.append("dateTimeCreated=").append(dateTimeCreated);
+        sb.append(",\n details='").append(details).append('\'');
+        sb.append(",\n metadata=").append(metadata);
+        sb.append(",\n severity=").append(severity);
+        sb.append(",\n source='").append(source).append('\'');
+        sb.append(",\n title='").append(title).append('\'');
+        sb.append(",\n topics=").append(topics);
+        sb.append("\n}");
+        return sb.toString();
     }
 
     public static class Metadata
@@ -159,6 +166,14 @@ public class MessageDTO implements Serializable{
 
         public void setValue(String value) {
             this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("key='").append(key).append('\'');
+            sb.append(", value='").append(value).append('\'');
+            return sb.toString();
         }
     }
 

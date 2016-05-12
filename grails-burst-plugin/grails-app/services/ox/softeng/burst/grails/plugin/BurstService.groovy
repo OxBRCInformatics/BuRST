@@ -15,7 +15,9 @@ import ox.softeng.burst.domain.SeverityEnum
 import ox.softeng.burst.grails.plugin.exception.BurstException
 import ox.softeng.burst.xml.MessageDTO
 
-import javax.xml.bind.JAXB
+import javax.xml.bind.JAXBContext
+import javax.xml.bind.JAXBException
+import javax.xml.bind.Marshaller
 import java.time.OffsetDateTime
 import java.time.ZoneId
 
@@ -40,16 +42,44 @@ class BurstService {
 
     MessageSource messageSource
 
-    void broadcastMessage(MessageDTO message) {
+    Marshaller marshaller
 
-        StringWriter writer = new StringWriter()
-        JAXB.marshal(message, writer)
+    BurstService() {
+        marshaller = JAXBContext.newInstance(MessageDTO.class).createMarshaller()
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+    }
 
-        logger.debug("Broadcasting BuRST message")
+    void broadcastMessage(MessageDTO message, boolean retry = true) {
+
+        logger.debug("Broadcasting BuRST message: {}", message.title)
         logger.trace("{}", message)
-        rabbitMessagePublisher.send {
-            routingKey = 'burst'
-            body = writer.toString()
+        StringWriter writer
+        try {
+            writer = new StringWriter()
+            marshaller.marshal(message, writer)
+
+            rabbitMessagePublisher.send {
+                routingKey = 'burst'
+                body = writer.toString()
+            }
+        } catch (JAXBException jaxbEX) {
+            if (retry && jaxbEX.cause.message.contains('com.rabbitmq.client.impl.LongStringHelper$ByteArrayLongString')) {
+                logger.warn("Failed to send original message, stripping and sending clean version")
+                MessageDTO bare = new MessageDTO()
+                bare.dateTimeCreated = message.dateTimeCreated
+                bare.details = message.details.toString()
+                bare.severity = message.severity
+                bare.source = message.source.toString()
+                bare.title = message.title.toString()
+                bare.metadata = message.metadata
+                bare.topics.addAll(message.topics.collect {it.toString()})
+                broadcastMessage(bare, false)
+                return
+            }
+            logger.error("Failed to broadcast message '" + message.title, jaxbEX.cause)
+
+        } catch (Exception ex) {
+            logger.error("Failed to broadcast message '" + message.title, ex)
         }
     }
 
@@ -121,14 +151,14 @@ class BurstService {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     void broadcastSeverityMessage(SeverityEnum mSeverity, String message, String mSource, String mTitle, List<String> mTopics,
-                                  Map<String, String> metadata = [:]) {
+                                  Map<String, String> metadataMap = [:]) {
         broadcastMessage {
             dateTimeCreated = OffsetDateTime.now(ZoneId.of('UTC'))
             severity = mSeverity
             details = message.toString()
             source = mSource.toString()
-            topics = mTopics
-            metadata.each {k, v ->
+            topics = mTopics.collect {it.toString()}
+            metadataMap.each {k, v ->
                 addToMetadata(k.toString(), v.toString() ?: 'unknown')
             }
             title = mTitle.toString()

@@ -26,11 +26,16 @@ public class RabbitService implements Runnable {
     private String rabbitMQQueue;
     private Unmarshaller unmarshaller;
 
-    public RabbitService(String rabbitMQHost, String rabbitMQExchange, String rabbitMQQueue, EntityManagerFactory emf)
-            throws IOException, TimeoutException, JAXBException {
+    public RabbitService(String rabbitMQHost, Integer port, String rabbitMQExchange, String rabbitMQQueue, String username, String password,
+                         EntityManagerFactory emf) throws IOException, TimeoutException, JAXBException {
+
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setAutomaticRecoveryEnabled(true);
+        factory.setUsername(username);
+        factory.setPassword(password);
+        factory.setPort(port);
         factory.setHost(rabbitMQHost);
+        factory.setAutomaticRecoveryEnabled(true);
+
         entityManagerFactory = emf;
         this.rabbitMQQueue = rabbitMQQueue;
         this.rabbitMQExchange = rabbitMQExchange;
