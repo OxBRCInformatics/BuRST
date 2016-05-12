@@ -35,11 +35,11 @@ public class ReportScheduler implements Runnable {
 
     public ReportScheduler(EntityManagerFactory emf, Properties props) {
         entityManagerFactory = emf;
-        emailsFrom = props.getProperty("smtp-from");
-        String smtpHost = props.getProperty("smtp-host");
-        smtpUsername = props.getProperty("smtp-username");
-        smtpPassword = props.getProperty("smtp-password");
-        defaultEmailSubject = props.getProperty("default-email-subject", "BuRST Reporting Message");
+        emailsFrom = props.getProperty("report.email.from");
+        String smtpHost = props.getProperty("report.email.host");
+        smtpUsername = props.getProperty("report.email.username");
+        smtpPassword = props.getProperty("report.email.password");
+        defaultEmailSubject = props.getProperty("report.email.default.subject", "BuRST Reporting Message");
 
         // Get system properties
         properties = System.getProperties();

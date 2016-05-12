@@ -1,5 +1,6 @@
 package ox.softeng.burst.services;
 
+import com.rabbitmq.client.ConnectionFactory;
 import org.apache.commons.cli.*;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
@@ -46,16 +47,28 @@ public class BurstService {
         migrateDatabase(url, user, password);
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("ox.softeng.burst", properties);
 
-        String RabbitMQHost = properties.getProperty("RabbitMQHost");
-        String RabbitMQExchange = properties.getProperty("RabbitMQExchange");
-        String RabbitMQQueue = properties.getProperty("RabbitMQQueue");
+        String rabbitMQHost = properties.getProperty("rabbitmq.host");
+        String rabbitMQExchange = properties.getProperty("rabbitmq.exchange");
+        String rabbitMQQueue = properties.getProperty("rabbitmq.queue");
+        String rabbitPortStr = properties.getProperty("rabbitmq.port");
+        String rabbitUser = properties.getProperty("rabbitmq.user", ConnectionFactory.DEFAULT_USER);
+        String rabbitPassword = properties.getProperty("rabbitmq.password", ConnectionFactory.DEFAULT_PASS);
+
+        Integer rabbitPort = ConnectionFactory.DEFAULT_AMQP_PORT;
+
+        try {
+            rabbitPort = Integer.parseInt(rabbitPortStr);
+        } catch (NumberFormatException ignored) {
+            logger.warn("Configuration supplied rabbit port '{}' is not numerical, using default value {}", rabbitPortStr, rabbitPort);
+        }
 
         logger.info("Creating new RabbitMQ Service using: \n" +
                     "  host: {}" +
                     "  exchange: {}" +
-                    "  queue: {}", RabbitMQHost, RabbitMQExchange, RabbitMQQueue);
+                    "  queue: {}", rabbitMQHost, rabbitMQExchange, rabbitMQQueue);
         try {
-            rabbitReceiver = new RabbitService(RabbitMQHost, RabbitMQExchange, RabbitMQQueue, entityManagerFactory);
+            rabbitReceiver = new RabbitService(rabbitMQHost, rabbitPort, rabbitMQExchange, rabbitUser, rabbitPassword, rabbitMQQueue,
+                                               entityManagerFactory);
         } catch (IOException | TimeoutException e) {
             logger.error("Cannot create RabbitMQ service: " + e.getMessage(), e);
             System.exit(1);
