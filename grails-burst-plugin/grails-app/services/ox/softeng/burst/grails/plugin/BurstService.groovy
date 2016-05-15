@@ -42,11 +42,10 @@ class BurstService {
 
     MessageSource messageSource
 
-    Marshaller marshaller
-
-    BurstService() {
-        marshaller = JAXBContext.newInstance(MessageDTO.class).createMarshaller()
+    Marshaller getMarshaller() {
+        Marshaller marshaller = JAXBContext.newInstance(MessageDTO.class).createMarshaller()
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+        marshaller
     }
 
     void broadcastMessage(MessageDTO message, boolean retry = true) {
@@ -56,7 +55,7 @@ class BurstService {
         StringWriter writer
         try {
             writer = new StringWriter()
-            marshaller.marshal(message, writer)
+            getMarshaller().marshal(message, writer)
 
             rabbitMessagePublisher.send {
                 routingKey = 'burst'
