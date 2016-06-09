@@ -1,7 +1,5 @@
 package ox.softeng.burst.domain.subscription;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +41,7 @@ public class Subscription implements Serializable {
     protected Severity severity;
     @ManyToOne
     protected User subscriber;
-    @Fetch(FetchMode.JOIN)
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "subscription_topics",
-                     schema = "subscription",
-                     joinColumns = @JoinColumn(name = "subscription_id",
-                                               referencedColumnName = "id"))
-    protected Set<String> topics;
+
 
     @Column(name = "topics")
     protected String topicsString;
@@ -66,8 +58,7 @@ public class Subscription implements Serializable {
         this.subscriber = subscriber;
         this.frequency = frequency;
         this.severity = severity;
-        this.topics = new HashSet<>();
-        addTopics(topics);
+        this.topicsString = topics;
 
         nextScheduledRun = OffsetDateTime.now();
         switch (frequency.getFrequency()) {
@@ -91,12 +82,11 @@ public class Subscription implements Serializable {
     }
 
     public void addTopic(String topic) {
-        addTopics(topic);
+        addTopics(topic.trim());
     }
 
     public void addTopics(Collection<String> topicCollection) {
-        this.topics.addAll(topicCollection);
-        topicsString = topicCollection.stream().collect(Collectors.joining(","));
+        topicsString += topicCollection.stream().map(String::trim).collect(Collectors.joining(","));
     }
 
     public void addTopics(String topics) {
@@ -176,34 +166,23 @@ public class Subscription implements Serializable {
     }
 
     public Set<String> getTopics() {
-        return topics;
+        return Arrays.stream(topicsString.split(",")).map(String::trim).collect(Collectors.toSet());
     }
 
     public void setTopics(Set<String> topics) {
-        this.topics = new HashSet<>(topics);
-        this.topicsString = topics.stream().collect(Collectors.joining(","));
+        this.topicsString = topics.stream().map(String::trim).collect(Collectors.joining(","));
     }
 
     public String getTopicsString() {
-        return topics.stream().collect(Collectors.joining(","));
+        return topicsString;
     }
 
     public void setTopicsString(String topics) {
-        setTopics(new HashSet<>(Arrays.asList(topics.split(","))));
+        this.topicsString = topics;
     }
 
-    public void tidyUpTopics(EntityManagerFactory entityManagerFactory) {
-        Set<String> tidied = new HashSet<>();
-        if (topicsString != null) tidied.addAll(Arrays.asList(topicsString.split(",")));
-        topics.forEach(topic -> tidied.addAll(Arrays.asList(topic.split(","))));
-        if (tidied.size() != topics.size()) {
-            setTopics(tidied);
-            EntityManager em = entityManagerFactory.createEntityManager();
-            em.getTransaction().begin();
-            em.merge(this);
-            em.getTransaction().commit();
-            em.close();
-        }
+    public boolean hasTopics(){
+        return !getTopics().isEmpty();
     }
 
     public static void initialiseSubscriptions(EntityManagerFactory entityManagerFactory) {

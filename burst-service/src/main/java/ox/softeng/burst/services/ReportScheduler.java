@@ -69,8 +69,8 @@ public class ReportScheduler implements Runnable {
 
             for (Subscription s : dueSubscriptions) {
 
-                logger.trace("Handling subscription: {}", s.getId());
                 User user = s.getSubscriber();
+                logger.trace("Handling subscription: {} for {}", s.getId(), user.getEmailAddress());
 
                 // For each of those, we find all the matching messages
                 List<Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
@@ -218,11 +218,7 @@ public class ReportScheduler implements Runnable {
         em.close();
 
         return dueSubscriptions.stream()
-                .map(subscription -> {
-                    // Ensure the topics are all split, to handle comma delimited topics
-                    subscription.tidyUpTopics(entityManagerFactory);
-                    return subscription;
-                }).filter(subscription -> !subscription.getTopics().isEmpty())
+                .filter(Subscription::hasTopics)
                 .collect(Collectors.toList());
     }
 
