@@ -1,0 +1,1 @@
+DROP TABLE subscription.subscription_topics
