@@ -86,11 +86,12 @@ public class Subscription implements Serializable {
     }
 
     public void addTopics(Collection<String> topicCollection) {
-        topicsString += topicCollection.stream().map(String::trim).collect(Collectors.joining(","));
+        addTopics(topicCollection.stream().map(String::trim).collect(Collectors.joining(",")));
     }
 
     public void addTopics(String topics) {
-        addTopics(Arrays.asList(topics.split(",")));
+        if (topicsString == null || topicsString.isEmpty()) topicsString = topics;
+        else topicsString += "," + topics.trim();
     }
 
     public void calculateNextScheduledRun() {
@@ -166,6 +167,7 @@ public class Subscription implements Serializable {
     }
 
     public Set<String> getTopics() {
+        if (topicsString == null || topicsString.isEmpty()) return new HashSet<>();
         return Arrays.stream(topicsString.split(",")).map(String::trim).collect(Collectors.toSet());
     }
 
@@ -183,6 +185,10 @@ public class Subscription implements Serializable {
 
     public boolean hasTopics(){
         return !getTopics().isEmpty();
+    }
+
+    public void setTopics(List<String> topics) {
+        setTopics(new HashSet<>(topics));
     }
 
     public static void initialiseSubscriptions(EntityManagerFactory entityManagerFactory) {

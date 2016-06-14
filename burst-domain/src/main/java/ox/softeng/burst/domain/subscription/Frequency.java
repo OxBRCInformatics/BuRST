@@ -29,4 +29,12 @@ public class Frequency {
     public void setFrequency(FrequencyEnum frequency) {
         this.frequency = frequency;
     }
+
+    static Frequency from(String frequency) {
+        return from(FrequencyEnum.valueOf(frequency));
+    }
+
+    static Frequency from(FrequencyEnum frequency) {
+        return new Frequency(frequency);
+    }
 }
