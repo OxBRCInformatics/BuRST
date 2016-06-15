@@ -47,6 +47,7 @@ public class RabbitService implements Runnable {
     public void run() {
         try {
             Channel channel = connection.createChannel();
+            channel.basicQos(40);
             channel.exchangeDeclare(rabbitMQExchange, "topic", true);
             Consumer consumer = createConsumer(channel);
             logger.warn("Waiting for messages");
