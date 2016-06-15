@@ -72,5 +72,22 @@ class SubscriptionTest extends Specification {
         then:
         subscription.hasTopics()
         subscription.topics.size() == 3
+
+        when:
+        subscription.topicsString = '  test   '
+
+        then:
+        subscription.hasTopics()
+        subscription.topics.size() == 1
+        subscription.topics[0] == 'test'
+
+        when:
+        subscription.topicsString = '  test,another'
+
+        then:
+        subscription.hasTopics()
+        subscription.topics.size() == 2
+        subscription.topics[0] == 'test'
+        subscription.topics[1] == 'another'
     }
 }
