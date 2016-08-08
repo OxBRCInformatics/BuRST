@@ -1,16 +1,25 @@
 package ox.softeng.burst.services;
 
+import ox.softeng.burst.domain.SeverityEnum;
+import ox.softeng.burst.domain.report.Message;
+
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.util.StatusPrinter;
 import com.rabbitmq.client.ConnectionFactory;
 import org.apache.commons.cli.*;
 import org.flywaydb.core.Flyway;
+import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.xml.bind.JAXBException;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,9 +33,10 @@ public class BurstService {
     public static final Integer THREAD_POOL_SIZE = 2;
     private static final Logger logger = LoggerFactory.getLogger(BurstService.class);
     private static final CommandLineParser parser = new DefaultParser();
-    ScheduledExecutorService executor;
+    final EntityManagerFactory entityManagerFactory;
+    final ScheduledExecutorService executor;
+    final ReportScheduler reportScheduler;
     Runnable rabbitReceiver;
-    ReportScheduler reportScheduler;
 
     public BurstService(Properties properties) {
 
@@ -45,7 +55,7 @@ public class BurstService {
                     "  user: {}" +
                     "  password: ****", url, user);
         migrateDatabase(url, user, password);
-        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("ox.softeng.burst", properties);
+        entityManagerFactory = Persistence.createEntityManagerFactory("ox.softeng.burst", properties);
 
         String rabbitMQHost = properties.getProperty("rabbitmq.host");
         String rabbitMQExchange = properties.getProperty("rabbitmq.exchange");
@@ -85,9 +95,36 @@ public class BurstService {
         executor = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
     }
 
+    public void generateStartupMessage() {
+        Message message = new Message(
+                "burst-service",
+                "Burst Service starting\n" + version(),
+                SeverityEnum.INFORMATIONAL,
+                OffsetDateTime.now(ZoneId.of("UTC")),
+                "Burst Service Startup"
+        );
+        message.addTopic("service");
+        message.addTopic("startup");
+        message.addTopic("burst");
+        message.addMetadata("gmc", "gel");
+
+        try {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            entityManager.getTransaction().begin();
+            entityManager.merge(message);
+            entityManager.getTransaction().commit();
+            entityManager.close();
+        } catch (HibernateException he) {
+            logger.error("Could not save startup message to database: " + he.getMessage(), he);
+        } catch (Exception e) {
+            logger.error("Unhandled exception trying to process startup message", e);
+        }
+    }
+
     public void startService() {
         logger.info("Starting service with report schedule frequency of {} {}", SCHEDULE_FREQUENCY,
                     SCHEDULE_FREQUENCY_UNITS.name().toLowerCase());
+        generateStartupMessage();
         executor.execute(rabbitReceiver);
         executor.scheduleAtFixedRate(reportScheduler, 0, SCHEDULE_FREQUENCY, SCHEDULE_FREQUENCY_UNITS);
     }
@@ -109,6 +146,10 @@ public class BurstService {
         return options;
     }
 
+    private static String fullVersion() {
+        return "burst-service " + version();
+    }
+
     private static void help() {
         HelpFormatter formatter = new HelpFormatter();
 
@@ -128,9 +169,8 @@ public class BurstService {
     }
 
     private static String version() {
-        return "burst-service version: \"" + BurstService.class.getPackage().getSpecificationVersion() + "\"\n" +
+        return "Version: \"" + BurstService.class.getPackage().getSpecificationVersion() + "\"\n" +
                "Java Version: \"" + System.getProperty("java.version") + "\"";
-
     }
 
     public static void main(String[] args) throws IOException {
@@ -138,13 +178,19 @@ public class BurstService {
             // parse the command line arguments
             CommandLine line = parser.parse(defineOptions(), args);
             if (line.hasOption("h")) help();
-            else if (line.hasOption("v")) System.out.println(version());
+            else if (line.hasOption("v")) System.out.println(fullVersion());
             else if (line.hasOption("c")) {
                 long start = System.currentTimeMillis();
                 try {
 
+                    // Give some information about the logging set-up
+                    LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+                    StatusPrinter.print(lc);
+
                     Properties properties = new Properties();
                     properties.load(new FileInputStream(line.getOptionValue('c')));
+
+                    logger.info("Starting burst service\n{}", version());
 
                     BurstService service = new BurstService(properties);
                     service.startService();
