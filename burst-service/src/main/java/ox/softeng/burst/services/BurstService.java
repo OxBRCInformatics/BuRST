@@ -107,6 +107,7 @@ public class BurstService {
         message.addTopic("startup");
         message.addTopic("burst");
         message.addMetadata("gmc", "gel");
+        message.addMetadata("burst_service_version", version());
 
         try {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
