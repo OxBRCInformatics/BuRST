@@ -60,22 +60,7 @@ public class Subscription implements Serializable {
         this.severity = severity;
         this.topicsString = topics;
 
-        nextScheduledRun = OffsetDateTime.now();
-        switch (frequency.getFrequency()) {
-            case IMMEDIATE:
-                nextScheduledRun.plusMinutes(1);
-                break;
-            case DAILY:
-                nextScheduledRun.plusDays(1);
-                break;
-            case WEEKLY:
-                nextScheduledRun.plusWeeks(1);
-                break;
-            case MONTHLY:
-                nextScheduledRun.plusMonths(1);
-                break;
-
-        }
+        calculateNextScheduledRun(1L);
     }
 
     public Subscription() {
@@ -94,13 +79,13 @@ public class Subscription implements Serializable {
         else topicsString += "," + topics.trim();
     }
 
-    public void calculateNextScheduledRun() {
+    public void calculateNextScheduledRun(Long immediateFrequency) {
         if (lastScheduledRun == null) {
             lastScheduledRun = OffsetDateTime.now();
         }
         switch (getFrequency().getFrequency()) {
             case IMMEDIATE:
-                setNextScheduledRun(lastScheduledRun.plusMinutes(1));
+                setNextScheduledRun(lastScheduledRun.plusMinutes(immediateFrequency));
                 break;
             case DAILY:
                 setNextScheduledRun(lastScheduledRun.plusDays(1));
@@ -171,8 +156,8 @@ public class Subscription implements Serializable {
         return Arrays.stream(topicsString.split(",")).map(String::trim).collect(Collectors.toSet());
     }
 
-    public void setTopics(Set<String> topics) {
-        this.topicsString = topics.stream().map(String::trim).collect(Collectors.joining(","));
+    public void setTopics(List<String> topics) {
+        setTopics(new HashSet<>(topics));
     }
 
     public String getTopicsString() {
@@ -187,11 +172,11 @@ public class Subscription implements Serializable {
         return !getTopics().isEmpty();
     }
 
-    public void setTopics(List<String> topics) {
-        setTopics(new HashSet<>(topics));
+    public void setTopics(Set<String> topics) {
+        this.topicsString = topics.stream().map(String::trim).collect(Collectors.joining(","));
     }
 
-    public static void initialiseSubscriptions(EntityManagerFactory entityManagerFactory) {
+    public static void initialiseSubscriptions(EntityManagerFactory entityManagerFactory, Long immediateFrequency) {
         EntityManager badSubsEm = entityManagerFactory.createEntityManager();
         TypedQuery<Subscription> badSubsQuery = badSubsEm.createNamedQuery("subscription.unInitialised", Subscription.class);
         List<Subscription> uninitialisedSubscriptions = badSubsQuery.getResultList();
@@ -202,7 +187,7 @@ public class Subscription implements Serializable {
                 logger.debug("Scheduling new run for {} subscription {}", s.getSubscriber().emailAddress, s.getId());
                 EntityManager schedEm = entityManagerFactory.createEntityManager();
                 schedEm.getTransaction().begin();
-                s.calculateNextScheduledRun();
+                s.calculateNextScheduledRun(immediateFrequency);
                 schedEm.merge(s);
                 schedEm.getTransaction().commit();
                 schedEm.close();

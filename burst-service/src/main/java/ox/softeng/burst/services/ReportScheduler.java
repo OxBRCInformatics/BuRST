@@ -27,6 +27,7 @@ public class ReportScheduler implements Runnable {
     private final EntityManagerFactory entityManagerFactory;
     private String defaultEmailSubject;
     private String emailsFrom;
+    private Long immediateFrequency;
     private Properties properties;
     private String protocol;
     private String smtpPassword;
@@ -40,6 +41,12 @@ public class ReportScheduler implements Runnable {
         smtpUsername = props.getProperty("report.email.username");
         smtpPassword = props.getProperty("report.email.password");
         defaultEmailSubject = props.getProperty("report.email.default.subject", "BuRST Reporting Message");
+        try {
+            immediateFrequency = Long.parseLong(props.getProperty("report.immediate.frequency", "1"));
+        } catch (NumberFormatException ignored) {
+            logger.warn("Could not convert property [report.immediate.frequency] to integer to setting immediate frequency to 1 minute");
+            immediateFrequency = 1L;
+        }
 
         // Get system properties
         properties = System.getProperties();
@@ -89,7 +96,7 @@ public class ReportScheduler implements Runnable {
 
         // Finally we find any subscription where the "time of next run" is not set,
         // and put a time on it.
-        Subscription.initialiseSubscriptions(entityManagerFactory);
+        Subscription.initialiseSubscriptions(entityManagerFactory, immediateFrequency);
     }
 
     protected String generateEmailContents(Map<SeverityEnum, List<Message>> emailContents, User user) {
@@ -263,7 +270,7 @@ public class ReportScheduler implements Runnable {
     private void updateSubscription(Subscription subscription, OffsetDateTime lastRun) {
         logger.trace("Updating last run time and scheduling next run for {}", subscription.getId());
         subscription.setLastScheduledRun(lastRun);
-        subscription.calculateNextScheduledRun();
+        subscription.calculateNextScheduledRun(immediateFrequency);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
         entityManager.merge(subscription);
