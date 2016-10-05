@@ -36,6 +36,7 @@ public class BurstService {
     final EntityManagerFactory entityManagerFactory;
     final ScheduledExecutorService executor;
     final ReportScheduler reportScheduler;
+    final Integer scheduleFrequency;
     Runnable rabbitReceiver;
 
     public BurstService(Properties properties) {
@@ -90,6 +91,7 @@ public class BurstService {
 
         logger.info("Creating new report scheduler");
         reportScheduler = new ReportScheduler(entityManagerFactory, properties);
+        scheduleFrequency = Integer.parseInt(properties.getProperty("report.schedule.frequency", SCHEDULE_FREQUENCY.toString()));
 
         logger.info("Creating new executor with thread pool size {}", THREAD_POOL_SIZE);
         executor = Executors.newScheduledThreadPool(THREAD_POOL_SIZE);
@@ -123,11 +125,11 @@ public class BurstService {
     }
 
     public void startService() {
-        logger.info("Starting service with report schedule frequency of {} {}", SCHEDULE_FREQUENCY,
+        logger.info("Starting service with report schedule frequency of {} {}", scheduleFrequency,
                     SCHEDULE_FREQUENCY_UNITS.name().toLowerCase());
         generateStartupMessage();
         executor.execute(rabbitReceiver);
-        executor.scheduleAtFixedRate(reportScheduler, 0, SCHEDULE_FREQUENCY, SCHEDULE_FREQUENCY_UNITS);
+        executor.scheduleAtFixedRate(reportScheduler, 0, scheduleFrequency, SCHEDULE_FREQUENCY_UNITS);
     }
 
     private static Options defineOptions() {
