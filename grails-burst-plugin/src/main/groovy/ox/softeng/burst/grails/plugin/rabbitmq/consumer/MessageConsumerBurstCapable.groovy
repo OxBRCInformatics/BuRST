@@ -57,7 +57,7 @@ trait MessageConsumerBurstCapable extends BurstCapable {
             logger.warn('{} - Response: {}', messageId, "${status.value()} ${status.reasonPhrase}")
         }
 
-        broadcastNoticeMessage message, messageId, title, topics, metadataMap
+        broadcastInformationMessage message, messageId, title, topics, metadataMap
 
         String response = writer.toString()
         if (object instanceof GPathResult) return new XmlSlurper().parseText(response)

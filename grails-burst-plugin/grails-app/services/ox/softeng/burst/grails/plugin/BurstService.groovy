@@ -145,6 +145,7 @@ class BurstService {
             details.append "  - ${messageSource.getMessage(error, Locale.default)}\n"
         }
 
+        logger.debug("Broadcasting errors:\n{}", details.toString())
         broadcastErrorMessage(details.toString(), source, title, topics, metadata)
     }
 
