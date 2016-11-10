@@ -1,7 +1,7 @@
 dependencies {
 
     compile project(':burst-utils')
-    compile group: 'org.grails.plugins', name: 'rabbitmq-native3', version: rabbitmqNative3Version
+    compile group: 'org.grails.plugins', name: 'rabbitmq-native', version: rabbitmqNativeVersion
 
     compile 'com.google.guava:guava:18.0'
 
