@@ -2,4 +2,5 @@ rootProject.name = 'BuRST'
 include 'burst-service'
 include 'grails-burst-plugin'
 include 'burst-domain'
+include 'burst-utils'
 

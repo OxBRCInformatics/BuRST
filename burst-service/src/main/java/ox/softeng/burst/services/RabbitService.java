@@ -67,7 +67,7 @@ public class RabbitService implements Runnable {
                 String tag = properties.getMessageId() != null ? properties.getMessageId() : consumerTag;
                 try {
                     MessageDTO messageDto = (MessageDTO) unmarshaller.unmarshal(new StringReader(messageString));
-                    Message m = messageDto.generateMessage();
+                    Message m = Message.generateMessage(messageDto);
 
                     logger.debug("{} - Received message DTO: {}", tag, messageDto.toString());
 

@@ -1,6 +1,8 @@
 package ox.softeng.burst.domain.report;
 
-import ox.softeng.burst.domain.SeverityEnum;
+import ox.softeng.burst.util.SeverityEnum;
+import ox.softeng.burst.xml.MessageDTO;
+import ox.softeng.burst.xml.MetadataDTO;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -36,7 +38,7 @@ public class Message implements Serializable {
     protected Long id = null;
     @Column(name = "message", columnDefinition = "TEXT")
     protected String message;
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "message")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "message")
     protected List<Metadata> metadata;
     @Enumerated(EnumType.STRING)
     protected SeverityEnum severity;
@@ -145,5 +147,17 @@ public class Message implements Serializable {
         if (severity != null) {
             this.severityNumber = severity.ordinal();
         }
+    }
+
+    public static Message generateMessage(MessageDTO messageDTO) {
+        Message msg = new Message(messageDTO.getSource(), messageDTO.getDetails(), messageDTO.getSeverity(),
+                                  messageDTO.getDateTimeCreated(), messageDTO.getTitle());
+        messageDTO.getTopics().forEach(msg::addTopic);
+        if (messageDTO.getMetadata() != null) {
+            for (MetadataDTO md : messageDTO.getMetadata()) {
+                msg.addMetadata(md.getKey(), md.getValue());
+            }
+        }
+        return msg;
     }
 }

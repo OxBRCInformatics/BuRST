@@ -1,4 +1,4 @@
-package ox.softeng.burst.domain;
+package ox.softeng.burst.util;
 
 // Taken from:
 // https://logging.apache.org/log4j/2.0/log4j-core/apidocs/org/apache/logging/log4j/core/net/Severity.html

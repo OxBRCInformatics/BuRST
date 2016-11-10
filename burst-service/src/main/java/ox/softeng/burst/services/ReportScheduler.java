@@ -1,10 +1,10 @@
 package ox.softeng.burst.services;
 
-import ox.softeng.burst.domain.SeverityEnum;
 import ox.softeng.burst.domain.report.Message;
 import ox.softeng.burst.domain.subscription.Severity;
 import ox.softeng.burst.domain.subscription.Subscription;
 import ox.softeng.burst.domain.subscription.User;
+import ox.softeng.burst.util.SeverityEnum;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

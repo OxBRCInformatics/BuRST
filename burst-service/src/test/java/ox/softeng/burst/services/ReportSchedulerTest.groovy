@@ -1,8 +1,8 @@
 package ox.softeng.burst.services
 
-import ox.softeng.burst.domain.SeverityEnum
 import ox.softeng.burst.domain.report.Message
 import ox.softeng.burst.domain.subscription.User
+import ox.softeng.burst.util.SeverityEnum
 import spock.lang.Specification
 
 import javax.persistence.EntityManagerFactory
