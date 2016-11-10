@@ -1,5 +1,5 @@
 grails:
-    profile: web-plugin
+    profile: web
     codegen:
         defaultPackage: ox.softeng.burst.grails.plugin
     spring:
@@ -54,7 +54,7 @@ hibernate:
         queries: false
         use_second_level_cache: true
         use_query_cache: false
-        region.factory_class: 'org.hibernate.cache.ehcache.EhCacheRegionFactory'
+        region.factory_class: 'org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory'
 
 dataSource:
     pooled: true
