@@ -11,7 +11,9 @@ import java.util.stream.Collectors;
 
 
 @Entity
-@Table(name = "subscription", schema = "subscription")
+@Table(name = "subscription", schema = "subscription", indexes = {@Index(columnList = "last_scheduled_run,severity_id", name = "index_lsr_si"),
+                                                                  @Index(columnList = "next_scheduled_run,last_scheduled_run", name = "index_nsr_lsr")
+})
 @NamedQueries({
                       @NamedQuery(name = "subscription.allDue",
                                   query = "select s from Subscription s where s.nextScheduledRun is not null and s.lastScheduledRun is not " +
@@ -27,7 +29,7 @@ public class Subscription implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @ManyToOne
-    @JoinColumn(name = "frequency")
+    @JoinColumn(name = "frequency_id", foreignKey = @ForeignKey(name = "fk_subscription_frequency"))
     protected Frequency frequency;
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "subscriptionIdSeq")
@@ -37,9 +39,10 @@ public class Subscription implements Serializable {
     @Column(name = "next_scheduled_run")
     protected OffsetDateTime nextScheduledRun;
     @ManyToOne
-    @JoinColumn(name = "severity")
+    @JoinColumn(name = "severity_id", foreignKey = @ForeignKey(name = "fk_subscription_severity"))
     protected Severity severity;
     @ManyToOne
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_subscription_users"))
     protected User subscriber;
 
 

@@ -15,7 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "message", schema = "report")
+@Table(name = "message", schema = "report", indexes = {
+        @Index(columnList = "datetime_received", name = "index_datetime_received"),
+        @Index(columnList = "severity_number", name = "index_severity_number")
+})
 @NamedQueries({
                       @NamedQuery(name = "message.MatchedMessages",
                                   query = "select distinct m from Message m "
@@ -51,7 +54,12 @@ public class Message implements Serializable {
     @CollectionTable(name = "message_topics",
                      schema = "report",
                      joinColumns = @JoinColumn(name = "message_id",
-                                               referencedColumnName = "id"))
+                                               referencedColumnName = "id"
+                     ),
+                     foreignKey = @ForeignKey(name = "fk_topics_messages"),
+                     indexes = @Index(columnList = "topic", name = "index_topic")
+    )
+    @Column(name = "topic")
     protected List<String> topics;
 
     public Message() {
