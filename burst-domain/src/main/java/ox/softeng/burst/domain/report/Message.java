@@ -36,7 +36,7 @@ public class Message implements Serializable {
     protected Long id = null;
     @Column(name = "message", columnDefinition = "TEXT")
     protected String message;
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "message")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "message")
     protected List<Metadata> metadata;
     @Enumerated(EnumType.STRING)
     protected SeverityEnum severity;
