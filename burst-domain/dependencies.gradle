@@ -1,10 +1,5 @@
 dependencies {
-
-    compile group: 'org.hibernate', name: 'hibernate-entitymanager', version: hibernateVersion
-    compile group: 'org.hibernate', name: 'hibernate-java8', version: hibernateVersion
-    compile group: 'org.flywaydb', name: 'flyway-core', version: '4.0'
-    compile 'org.apache.commons:commons-lang3:3.4'
-    compile group: 'com.rabbitmq', name: 'amqp-client', version: rabbitmqVersion
+    compile project(':burst-utils')
 
     testRuntime group: 'org.postgresql', name: 'postgresql', version: postgresJdbcVersion
 }

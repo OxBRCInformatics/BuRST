@@ -1,6 +1,6 @@
 package ox.softeng.burst.domain.subscription;
 
-import ox.softeng.burst.domain.SeverityEnum;
+import ox.softeng.burst.util.SeverityEnum;
 
 import javax.persistence.*;
 

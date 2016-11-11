@@ -1,6 +1,6 @@
 package ox.softeng.burst.domain.subscription;
 
-import ox.softeng.burst.domain.FrequencyEnum;
+import ox.softeng.burst.util.FrequencyEnum;
 
 import javax.persistence.*;
 

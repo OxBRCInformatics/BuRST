@@ -1,6 +1,8 @@
 package ox.softeng.burst.domain.report;
 
-import ox.softeng.burst.domain.SeverityEnum;
+import ox.softeng.burst.util.SeverityEnum;
+import ox.softeng.burst.xml.MessageDTO;
+import ox.softeng.burst.xml.MetadataDTO;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -13,7 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "message", schema = "report")
+@Table(name = "message", schema = "report", indexes = {
+        @Index(columnList = "datetime_received", name = "index_datetime_received"),
+        @Index(columnList = "severity_number", name = "index_severity_number")
+})
 @NamedQueries({
                       @NamedQuery(name = "message.MatchedMessages",
                                   query = "select distinct m from Message m "
@@ -49,7 +54,12 @@ public class Message implements Serializable {
     @CollectionTable(name = "message_topics",
                      schema = "report",
                      joinColumns = @JoinColumn(name = "message_id",
-                                               referencedColumnName = "id"))
+                                               referencedColumnName = "id"
+                     ),
+                     foreignKey = @ForeignKey(name = "fk_topics_messages"),
+                     indexes = @Index(columnList = "topic", name = "index_topic")
+    )
+    @Column(name = "topic")
     protected List<String> topics;
 
     public Message() {
@@ -145,5 +155,17 @@ public class Message implements Serializable {
         if (severity != null) {
             this.severityNumber = severity.ordinal();
         }
+    }
+
+    public static Message generateMessage(MessageDTO messageDTO) {
+        Message msg = new Message(messageDTO.getSource(), messageDTO.getDetails(), messageDTO.getSeverity(),
+                                  messageDTO.getDateTimeCreated(), messageDTO.getTitle());
+        messageDTO.getTopics().forEach(msg::addTopic);
+        if (messageDTO.getMetadata() != null) {
+            for (MetadataDTO md : messageDTO.getMetadata()) {
+                msg.addMetadata(md.getKey(), md.getValue());
+            }
+        }
+        return msg;
     }
 }

@@ -7,11 +7,13 @@ import org.springframework.validation.Errors
 import ox.softeng.burst.grails.plugin.BurstCapable
 import ox.softeng.burst.grails.plugin.exception.BurstException
 
-import static org.springframework.http.HttpStatus.*
+import static org.springframework.http.HttpStatus.CREATED
+import static org.springframework.http.HttpStatus.OK
 
 /**
  * @since 24/02/2016
  */
+@Transactional(readOnly = true)
 abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> implements BurstCapable {
 
     RestfulControllerBurstCapable(Class<T> resource) {
@@ -38,7 +40,8 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         // Binding failed so we have nothing to extract for metadata
         if (instance instanceof Errors) {
             handleNoIdErrors(instance, 'VAL03', getTopics(), [:])
-            return respond(UNPROCESSABLE_ENTITY, object)
+            respond instance, view: 'create'
+            return
         }
 
         instance.validate()

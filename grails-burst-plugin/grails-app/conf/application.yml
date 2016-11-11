@@ -1,5 +1,5 @@
 grails:
-    profile: web-plugin
+    profile: web
     codegen:
         defaultPackage: ox.softeng.burst.grails.plugin
     spring:
@@ -17,36 +17,40 @@ spring:
             check-template-location: false
 ---
 rabbitmq:
-    connection:
-        host: 'localhost'
-        username: 'guest'
-        password: 'guest'
-        isDefault: true
-        name: 'default'
+    connections:
+        - name: 'default'
+          host: 'localhost'
+          username: 'guest'
+          password: 'guest'
+          isDefault: true
+    exchanges:
+        - name: Carfax
+          type: topic
+          durable: true
+        - name: test
+          autoDelete: false
+          type: topic
     queues:
-        exchange_Carfax:
-            type: topic
-            durable: true
-            queues:
-                queue_burst:
-                    durable: true
-                    binding: '#.burst'
-                queue_sample-tracking:
-                    durable: true
-                    binding: '#.sample-tracking'
-        exchange_test:
-            type: 'topic'
-            autoDelete: false
-            queues:
-                queue_subset:
-                    autoDelete: true
-                    binding: 'test.#'
-                queue_exception:
-                    autoDelete: true
-                    binding: 'test.exception'
-                queue_validation:
-                    autoDelete: true
-                    binding: 'test.validation'
+        - name: burst
+          durable: true
+          binding: '#.burst'
+          exchange: Carfax
+        - name: sample-tracking
+          durable: true
+          binding: '#.sample-tracking'
+          exchange: Carfax
+        - name: subset
+          autoDelete: true
+          binding: 'test.#'
+          exchange: test
+        - name: exception
+          autoDelete: true
+          binding: 'test.exception'
+          exchange: test
+        - name: validation
+          autoDelete: true
+          binding: 'test.validation'
+          exchange: test
 
 ---
 hibernate:
@@ -54,7 +58,7 @@ hibernate:
         queries: false
         use_second_level_cache: true
         use_query_cache: false
-        region.factory_class: 'org.hibernate.cache.ehcache.EhCacheRegionFactory'
+        region.factory_class: 'org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory'
 
 dataSource:
     pooled: true

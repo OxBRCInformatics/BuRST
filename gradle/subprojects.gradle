@@ -152,9 +152,9 @@ subprojects {
             name = project.name
             userOrg = 'oxbrcinformatics'
             licenses = ['Apache-2.0']
-            websiteUrl = 'https://github.com/jamesrwelch/BuRST'
-            vcsUrl = 'https://github.com/jamesrwelch/BuRST.git'
-            githubRepo = 'jamesrwelch/BuRST'
+            websiteUrl = 'https://github.com/OxBRCInformatics/BuRST'
+            vcsUrl = 'https://github.com/OxBRCInformatics/BuRST.git'
+            githubRepo = 'OxBRCInformatics/BuRST'
             githubReleaseNotesFile = 'README.md'
             version {
                 name = project.version
