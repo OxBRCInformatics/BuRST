@@ -13,6 +13,7 @@ import static org.springframework.http.HttpStatus.OK
 /**
  * @since 24/02/2016
  */
+@Transactional(readOnly = true)
 abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> implements BurstCapable {
 
     RestfulControllerBurstCapable(Class<T> resource) {

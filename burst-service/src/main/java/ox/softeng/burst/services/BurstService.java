@@ -1,7 +1,7 @@
 package ox.softeng.burst.services;
 
-import ox.softeng.burst.domain.SeverityEnum;
 import ox.softeng.burst.domain.report.Message;
+import ox.softeng.burst.util.SeverityEnum;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.core.util.StatusPrinter;

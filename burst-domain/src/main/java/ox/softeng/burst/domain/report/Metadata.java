@@ -3,7 +3,9 @@ package ox.softeng.burst.domain.report;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "metadata", schema = "report")
+@Table(name = "metadata", schema = "report", indexes = {
+        @Index(columnList = "key", name = "index_key")
+})
 @SequenceGenerator(name = "metadataIdSeq", sequenceName = "report.metadata_id_seq", allocationSize = 1)
 public class Metadata {
     @Id
@@ -11,7 +13,7 @@ public class Metadata {
     protected Long id = null;
     protected String key;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "message")
+    @JoinColumn(name = "message_id", foreignKey = @ForeignKey(name = "fk_metadata_messages"))
     protected Message message;
     protected String value;
 
