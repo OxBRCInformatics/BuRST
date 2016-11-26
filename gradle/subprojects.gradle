@@ -53,11 +53,12 @@ subprojects {
         xml = false
         report.xml.enabled = false
         report.html.destination = file('license-report')
-
     }
 
     license {
         header rootProject.file('LICENSE')
+        includes(["**/*.java","**/*.groovy"])
+        excludes(['**/*Test.java', '**/*Test.groovy', '**/*Spec.groovy','*logback*.groovy', 'resources.groovy'])
     }
 
     rootProject.tasks.reportOnLicenses.dependsOn tasks.downloadLicenses
