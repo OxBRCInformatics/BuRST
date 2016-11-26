@@ -43,10 +43,24 @@ subprojects {
     apply plugin: 'jacoco'
     apply plugin: 'maven'
     apply plugin: 'com.jfrog.bintray'
+    apply plugin: "com.github.hierynomus.license"
 
     jacoco {
         toolVersion = '+'
     }
+
+    downloadLicenses {
+        xml = false
+        report.xml.enabled = false
+        report.html.destination = file('license-report')
+
+    }
+
+    license {
+        header rootProject.file('LICENSE')
+    }
+
+    rootProject.tasks.reportOnLicenses.dependsOn tasks.downloadLicenses
 
     repositories {
         mavenLocal()

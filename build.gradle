@@ -7,6 +7,7 @@ buildscript {
     dependencies {
         classpath 'org.springframework.build.gradle:propdeps-plugin:+'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+        classpath "gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1"
     }
 }
 
