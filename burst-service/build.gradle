@@ -1,0 +1,12 @@
+plugins {
+    id 'com.github.hierynomus.license' version '0.13.1'
+}
+
+downloadLicenses {
+    xml = false
+    report.xml.enabled = false
+    report.html.destination = file('license-report')
+
+}
+
+rootProject.tasks.reportOnLicenses.dependsOn tasks.downloadLicenses

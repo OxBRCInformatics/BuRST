@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.springframework.build.gradle:propdeps-plugin:+'
-         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
     }
 }
 
@@ -162,6 +162,12 @@ task unitTest(type: TestReport) {
     }
     dependsOn tasks.assemble
 }
+
+task reportOnLicenses {
+    group 'license'
+}
+
+check.dependsOn 'reportOnLicenses'
 
 apply from: 'gradle/allprojects.gradle'
 apply from: 'gradle/subprojects.gradle'
