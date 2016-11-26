@@ -9,4 +9,8 @@ downloadLicenses {
 
 }
 
+license {
+    header rootProject.file('LICENSE')
+}
+
 rootProject.tasks.reportOnLicenses.dependsOn tasks.downloadLicenses

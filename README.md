@@ -1,7 +1,7 @@
 # BuRST - Basic Report Subscription Tool
 
 [![Build Status](https://travis-ci.org/OxBRCInformatics/BuRST.svg?branch=develop)](https://travis-ci.org/OxBRCInformatics/BuRST)
-[![Master](http://img.shields.io/badge/master-1.1-green.svg)](https://github.com/OxBRCInformatics/BuRST/tree/master)
+[![Master](http://img.shields.io/badge/master-2.0.0-green.svg)](https://github.com/OxBRCInformatics/BuRST/tree/master)
 [![License](http://img.shields.io/badge/license-MIT_License-lightgrey.svg)](https://github.com/OxBRCInformatics/BuRST/blob/develop/LICENSE)
 
 ## What is this
