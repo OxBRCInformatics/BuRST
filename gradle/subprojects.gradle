@@ -63,6 +63,8 @@ subprojects {
 
     rootProject.tasks.reportOnLicenses.dependsOn tasks.downloadLicenses
 
+    install.dependsOn 'assemble'
+
     repositories {
         mavenLocal()
         jcenter()

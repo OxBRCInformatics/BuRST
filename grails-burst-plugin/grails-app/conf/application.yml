@@ -1,5 +1,5 @@
 grails:
-    profile: web
+    profile: web-plugin
     codegen:
         defaultPackage: ox.softeng.burst.grails.plugin
     spring:

@@ -209,7 +209,7 @@ import ox.softeng.burst.grails.plugin.rabbitmq.databinding.StringXmlDataBindingS
 class BurstGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "3.1.5 > *"
+    def grailsVersion = "3.1.14 > *"
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
             "grails-app/views/error.gsp",
@@ -256,11 +256,7 @@ Provides the following classes which can be extended, each will produce BuRST me
 
     Closure doWithSpring() {
         {->
-
             xmlDataBindingSourceCreator(StringXmlDataBindingSourceCreator)
-/*
-
-            */
         }
     }
 
