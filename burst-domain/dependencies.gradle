@@ -1,5 +1,6 @@
 dependencies {
     compile project(':burst-utils')
+    compile group: 'org.flywaydb', name: 'flyway-core', version: flywayVersion
 
     testRuntime group: 'org.postgresql', name: 'postgresql', version: postgresJdbcVersion
 }
