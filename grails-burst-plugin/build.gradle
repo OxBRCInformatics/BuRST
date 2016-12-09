@@ -84,3 +84,17 @@ javadocJar {
         exclude it
     }
 }
+
+grailsPublish {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    userOrg = 'oxbrcinformatics'
+    repo = 'maven'
+
+    license {
+        name = 'Apache-2.0'
+    }
+    githubSlug = 'OxBRCInformatics/BuRST'
+    title = "Grails Burst Plugin"
+    developers = [olliefreeman:"Oliver Freeman"]
+}
