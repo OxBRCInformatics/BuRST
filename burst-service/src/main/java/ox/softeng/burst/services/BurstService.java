@@ -56,11 +56,11 @@ public class BurstService {
     public static final Integer THREAD_POOL_SIZE = 2;
     private static final Logger logger = LoggerFactory.getLogger(BurstService.class);
     private static final CommandLineParser parser = new DefaultParser();
-    final EntityManagerFactory entityManagerFactory;
-    final ScheduledExecutorService executor;
-    final ReportScheduler reportScheduler;
-    final Integer scheduleFrequency;
-    Runnable rabbitReceiver;
+    private final EntityManagerFactory entityManagerFactory;
+    private final ScheduledExecutorService executor;
+    private final ReportScheduler reportScheduler;
+    private final Integer scheduleFrequency;
+    private Runnable rabbitReceiver;
 
     public BurstService(Properties properties) {
 

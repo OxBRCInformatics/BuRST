@@ -27,15 +27,12 @@ import ox.softeng.burst.util.SeverityEnum;
 import ox.softeng.burst.xml.MessageDTO;
 import ox.softeng.burst.xml.MetadataDTO;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "message", schema = "report", indexes = {
@@ -65,14 +62,13 @@ public class Message implements Serializable {
     @Column(name = "message", columnDefinition = "TEXT")
     protected String message;
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "message")
-    protected List<Metadata> metadata;
+    protected Set<Metadata> metadata;
     @Enumerated(EnumType.STRING)
     protected SeverityEnum severity;
     @Column(name = "severity_number")
     protected int severityNumber;
     protected String source;
     protected String title;
-    @Fetch(FetchMode.JOIN)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "message_topics",
                      schema = "report",
@@ -83,22 +79,21 @@ public class Message implements Serializable {
                      indexes = @Index(columnList = "topic", name = "index_topic")
     )
     @Column(name = "topic")
-    protected List<String> topics;
+    protected Set<String> topics;
 
     public Message() {
-        topics = new ArrayList<>();
-        metadata = new ArrayList<>();
+        topics = new HashSet<>();
+        metadata = new HashSet<>();
     }
 
     public Message(String source, String message, SeverityEnum severity, OffsetDateTime dateTimeCreated, String title) {
+        this();
         dateTimeReceived = OffsetDateTime.now(ZoneId.of("UTC"));
         this.source = source;
         this.message = message;
         this.severity = severity;
         this.dateTimeCreated = dateTimeCreated;
         this.title = title;
-        topics = new ArrayList<>();
-        metadata = new ArrayList<>();
     }
 
     public void addMetadata(String key, String value) {
@@ -129,11 +124,11 @@ public class Message implements Serializable {
         this.message = message;
     }
 
-    public List<Metadata> getMetadata() {
+    public Set<Metadata> getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(List<Metadata> metadata) {
+    public void setMetadata(Set<Metadata> metadata) {
         this.metadata = metadata;
     }
 
@@ -161,11 +156,11 @@ public class Message implements Serializable {
         this.title = title;
     }
 
-    public List<String> getTopics() {
+    public Set<String> getTopics() {
         return topics;
     }
 
-    public void setTopics(List<String> topics) {
+    public void setTopics(Set<String> topics) {
         this.topics = topics;
     }
 
