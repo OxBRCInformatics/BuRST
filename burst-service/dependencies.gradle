@@ -7,4 +7,5 @@ dependencies {
     compile group: 'javax.mail', name: 'mail', version: '1.4.7'
 
     runtime group: 'org.postgresql', name: 'postgresql', version: postgresJdbcVersion
+    runtime group: 'org.hibernate', name: 'hibernate-entitymanager', version: hibernateVersion
 }
