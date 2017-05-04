@@ -91,35 +91,39 @@ public class ReportScheduler implements Runnable {
     @Override
     public void run() {
 
-        OffsetDateTime now = OffsetDateTime.now();
-        List<Subscription> dueSubscriptions = findDueSubscriptions(now);
+        try {
+            OffsetDateTime now = OffsetDateTime.now();
+            List<Subscription> dueSubscriptions = findDueSubscriptions(now);
 
-        if (!dueSubscriptions.isEmpty()) {
-            logger.info("Generating reports for {} subscriptions", dueSubscriptions.size());
+            if (!dueSubscriptions.isEmpty()) {
+                logger.info("Generating reports for {} subscriptions", dueSubscriptions.size());
 
-            for (Subscription s : dueSubscriptions) {
+                for (Subscription s : dueSubscriptions) {
 
-                User user = s.getSubscriber();
-                logger.trace("Handling subscription: {} for {}", s.getId(), user.getEmailAddress());
+                    User user = s.getSubscriber();
+                    logger.trace("Handling subscription: {} for {}", s.getId(), user.getEmailAddress());
 
-                // For each of those, we find all the matching messages
-                List<Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
-                logger.debug("Subscription {} has {} matching messages", s.getId(), matchedMessages.size());
+                    // For each of those, we find all the matching messages
+                    List<Message> matchedMessages = findMessagesForSubscription(s, now, s.getSeverity());
+                    logger.debug("Subscription {} has {} matching messages", s.getId(), matchedMessages.size());
 
-                Map<SeverityEnum, List<Message>> emailContentsMessages = getEmailContentsMessages(matchedMessages);
-                logger.debug("Generating email for {} messages", getNumberOfMessages(emailContentsMessages));
+                    Map<SeverityEnum, List<Message>> emailContentsMessages = getEmailContentsMessages(matchedMessages);
+                    logger.debug("Generating email for {} messages", getNumberOfMessages(emailContentsMessages));
 
-                sendMessagesToUser(user, emailContentsMessages);
+                    sendMessagesToUser(user, emailContentsMessages);
 
-                // Then we re-calculate the "last sent" and "next send" timestamps and update the record
-                updateSubscription(s, now);
+                    // Then we re-calculate the "last sent" and "next send" timestamps and update the record
+                    updateSubscription(s, now);
+                }
+                logger.debug("Reports generated");
             }
-            logger.debug("Reports generated");
-        }
 
-        // Finally we find any subscription where the "time of next run" is not set,
-        // and put a time on it.
-        Subscription.initialiseSubscriptions(entityManagerFactory, immediateFrequency);
+            // Finally we find any subscription where the "time of next run" is not set,
+            // and put a time on it.
+            Subscription.initialiseSubscriptions(entityManagerFactory, immediateFrequency);
+        } catch (Exception ex) {
+            logger.error("Unhandled report scheduler exception", ex);
+        }
     }
 
     protected String generateEmailContents(Map<SeverityEnum, List<Message>> emailContents, User user) {

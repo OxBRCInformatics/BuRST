@@ -1,18 +1,18 @@
 /**
  * The MIT License (MIT)
- *
+ * <p>
  * Copyright (c) 2016 James Welch
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -44,10 +44,7 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Properties;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 public class BurstService {
 
@@ -60,7 +57,7 @@ public class BurstService {
     private final ScheduledExecutorService executor;
     private final ReportScheduler reportScheduler;
     private final Integer scheduleFrequency;
-    private Runnable rabbitReceiver;
+    private RabbitService rabbitReceiver;
 
     public BurstService(Properties properties) {
 
@@ -152,7 +149,11 @@ public class BurstService {
                     SCHEDULE_FREQUENCY_UNITS.name().toLowerCase());
         generateStartupMessage();
         executor.execute(rabbitReceiver);
-        executor.scheduleAtFixedRate(reportScheduler, 0, scheduleFrequency, SCHEDULE_FREQUENCY_UNITS);
+        try {
+            executor.scheduleWithFixedDelay(reportScheduler, 0, scheduleFrequency, SCHEDULE_FREQUENCY_UNITS);
+        } catch (RejectedExecutionException ex) {
+            logger.error("Failed to execute report scheduler", ex);
+        }
     }
 
     private static Options defineOptions() {
@@ -199,7 +200,7 @@ public class BurstService {
                "Java Version: \"" + System.getProperty("java.version") + "\"";
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         try {
             // parse the command line arguments
             CommandLine line = parser.parse(defineOptions(), args);
@@ -231,6 +232,8 @@ public class BurstService {
         } catch (ParseException exp) {
             logger.error("Could not start burst-service because of ParseException: " + exp.getMessage());
             help();
+        } catch (RuntimeException ex) {
+            logger.error("Unhandled runtime exception", ex);
         }
     }
 }
