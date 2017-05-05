@@ -23,15 +23,20 @@
  */
 package ox.softeng.burst.domain.subscription;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import java.io.Serializable;
+import ox.softeng.burst.domain.util.DomainClass;
 
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.List;
+
+@NamedQueries({
+                      @NamedQuery(name = "user.find_by_email",
+                                  query = "select u from User u" +
+                                          " where u.emailAddress = :email")
+              })
 @Entity
 @Table(name = "users", schema = "subscription")
-public class User implements Serializable {
+public class User extends DomainClass implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -90,5 +95,13 @@ public class User implements Serializable {
         this.organisation = organisation;
     }
 
-
+    public static User findOrCreate(EntityManagerFactory entityManagerFactory, User user) {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        TypedQuery<User> query = entityManager.createNamedQuery("user.find_by_email", User.class);
+        query.setParameter("email", user.emailAddress);
+        List<User> users = query.getResultList();
+        entityManager.close();
+        if (users.isEmpty()) return user;
+        return users.get(0);
+    }
 }
