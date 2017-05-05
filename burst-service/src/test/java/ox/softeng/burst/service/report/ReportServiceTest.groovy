@@ -1,4 +1,4 @@
-package ox.softeng.burst.services
+package ox.softeng.burst.service.report
 
 import ox.softeng.burst.domain.report.Message
 import ox.softeng.burst.domain.subscription.User
@@ -8,19 +8,20 @@ import spock.lang.Specification
 import javax.persistence.EntityManagerFactory
 import javax.persistence.Persistence
 import java.time.OffsetDateTime
+import java.util.concurrent.Executors
 
 /**
  * @since 08/05/2016
  */
-class ReportSchedulerTest extends Specification {
+class ReportServiceTest extends Specification {
 
-    ReportScheduler service
+    ReportService service
     Message message, message2, message3
     User user
 
     def setup() {
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("ox.softeng.burst", properties);
-        service = new ReportScheduler(entityManagerFactory, new Properties())
+        service = new ReportService(entityManagerFactory, Executors.newCachedThreadPool(), new Properties(), null, OffsetDateTime.now(), 1)
         message = new Message('test', 'test message', SeverityEnum.ALERT,
                               OffsetDateTime.now(), null)
         message2 = new Message('test', 'test message2', SeverityEnum.ALERT,
