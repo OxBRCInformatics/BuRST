@@ -17,18 +17,20 @@ appender('STDOUT', ConsoleAppender) {
     }
 }
 
-appender("FILE", RollingFileAppender) {
+appender("FILE", FileAppender) {
     file = "${logDir}/burst-${service}-service.log"
-    append = true
+    append = false
     encoder(PatternLayoutEncoder) {
         pattern = defPattern
-    }
-    rollingPolicy(TimeBasedRollingPolicy) {
-        maxHistory = 90
-        fileNamePattern = "${logDir}/burst-service.%d{yyyy-MM-dd}.log"
     }
 }
 
 root(INFO, ['STDOUT', 'FILE'])
 
 logger('ox.softeng', DEBUG)
+//logger('ox.softeng.burst.service.message.RabbitService', INFO)
+//logger('ox.softeng.burst.service.report.ReportScheduler', TRACE)
+//logger('ox.softeng.burst.service.report.ReportService', TRACE)
+//logger('ox.softeng.burst.service.report.EmailService', TRACE)
+//logger('org.hibernate.SQL', DEBUG)
+//logger 'org.hibernate.type', TRACE
