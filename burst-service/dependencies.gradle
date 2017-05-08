@@ -5,6 +5,7 @@ dependencies {
     compile group: 'commons-cli', name: 'commons-cli', version: commonsCliVersion
     compile group: 'com.rabbitmq', name: 'amqp-client', version: rabbitmqVersion
     compile group: 'javax.mail', name: 'mail', version: '1.4.7'
+    compile group: 'com.google.guava', name: 'guava', version: '18.0'
 
     runtime group: 'org.postgresql', name: 'postgresql', version: postgresJdbcVersion
     runtime group: 'org.hibernate', name: 'hibernate-entitymanager', version: hibernateVersion

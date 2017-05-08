@@ -23,33 +23,42 @@
  */
 package ox.softeng.burst.domain.report;
 
+import ox.softeng.burst.domain.subscription.Severity;
+import ox.softeng.burst.domain.util.DomainClass;
 import ox.softeng.burst.util.SeverityEnum;
 import ox.softeng.burst.xml.MessageDTO;
 import ox.softeng.burst.xml.MetadataDTO;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
 @Table(name = "message", schema = "report", indexes = {
         @Index(columnList = "datetime_received", name = "index_datetime_received"),
-        @Index(columnList = "severity_number", name = "index_severity_number")
+        @Index(columnList = "severity_number", name = "index_severity_number"),
+        @Index(columnList = "datetime_received,severity_number", name = "index_dr_s")
 })
 @NamedQueries({
-                      @NamedQuery(name = "message.MatchedMessages",
-                                  query = "select distinct m from Message m "
-                                          + "where "
-                                          + "m.dateTimeReceived < :dateNow "
-                                          + "and m.dateTimeReceived >= :lastSentDate "
-                                          + "and m.severityNumber >= :severity ")
+                      @NamedQuery(name = "message.with_severity_between_time",
+                                  query = "select distinct m from Message m" +
+                                          //                                          " join fetch m.metadata metadata " +
+                                          " join fetch m.topics topics " +
+                                          " where m.dateTimeReceived < :endTime" +
+                                          " and m.dateTimeReceived >= :startTime" +
+                                          " and m.severityNumber >= :severity")
               })
 @SequenceGenerator(name = "messagesIdSeq", sequenceName = "report.messages_id_seq", allocationSize = 1)
-public class Message implements Serializable {
+public class Message extends DomainClass implements Serializable {
 
+    private static final Logger logger = LoggerFactory.getLogger(Message.class);
 
     private static final long serialVersionUID = 1L;
     @Column(name = "datetime_created")
@@ -61,7 +70,7 @@ public class Message implements Serializable {
     protected Long id = null;
     @Column(name = "message", columnDefinition = "TEXT")
     protected String message;
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "message")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "message")
     protected Set<Metadata> metadata;
     @Enumerated(EnumType.STRING)
     protected SeverityEnum severity;
@@ -69,7 +78,7 @@ public class Message implements Serializable {
     protected int severityNumber;
     protected String source;
     protected String title;
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection
     @CollectionTable(name = "message_topics",
                      schema = "report",
                      joinColumns = @JoinColumn(name = "message_id",
@@ -173,6 +182,21 @@ public class Message implements Serializable {
         if (severity != null) {
             this.severityNumber = severity.ordinal();
         }
+    }
+
+    public static List<Message> findAllMessagesBySeverityBetweenTime(EntityManagerFactory entityManagerFactory, Severity severity,
+                                                                     OffsetDateTime startTimestamp, OffsetDateTime endTimestamp) {
+        logger.trace("Searching for all messages by severity between time");
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        TypedQuery<Message> msgQuery = entityManager.createNamedQuery("message.with_severity_between_time", Message.class);
+        msgQuery.setParameter("endTime", endTimestamp);
+        msgQuery.setParameter("startTime", startTimestamp);
+        msgQuery.setParameter("severity", severity.getSeverity().ordinal());
+        List<Message> matchedMessages = msgQuery.getResultList();
+        entityManager.close();
+        logger.trace("Found {} messages with severity {} between {} and {} ", matchedMessages.size(), severity, startTimestamp.toString(),
+                     endTimestamp.toString());
+        return matchedMessages;
     }
 
     public static Message generateMessage(MessageDTO messageDTO) {
