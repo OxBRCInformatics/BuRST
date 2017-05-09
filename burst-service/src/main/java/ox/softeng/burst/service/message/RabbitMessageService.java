@@ -47,11 +47,7 @@ public class RabbitMessageService implements Runnable {
     private final String exchange;
     private final String queue;
 
-    public RabbitMessageService(EntityManagerFactory emf, Properties props) throws IOException, TimeoutException {
-
-        // Get system properties
-        Properties properties = System.getProperties();
-        properties.putAll(props);
+    public RabbitMessageService(EntityManagerFactory emf, Properties properties) throws IOException, TimeoutException {
 
         exchange = properties.getProperty("rabbitmq.exchange");
         queue = properties.getProperty("rabbitmq.queue");
