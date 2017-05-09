@@ -49,12 +49,11 @@ public class ReportScheduler implements Runnable {
     private final ExecutorService reportServiceExecutor;
     private ExecutorService emailServiceExecutor;
 
-    public ReportScheduler(EntityManagerFactory emf, Properties props) throws IllegalStateException {
+    public ReportScheduler(EntityManagerFactory emf, Properties properties) throws IllegalStateException {
         entityManagerFactory = emf;
 
-        // Get system properties
-        properties = System.getProperties();
-        properties.putAll(props);
+
+        this.properties = properties;
 
         immediateFrequency = Utils.convertToLong("report.immediate.frequency",
                                                  properties.getProperty("report.immediate.frequency"), 1L);

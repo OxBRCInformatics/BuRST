@@ -67,12 +67,14 @@ public class BurstService {
         if (!Strings.isNullOrEmpty(System.getenv("BURST_VERSION")))
             logger.info("Docker container build version {}", System.getenv("BURST_VERSION"));
 
-        String user = properties.getProperty("hibernate.connection.user");
-        String url = properties.getProperty("hibernate.connection.url");
-        String password = properties.getProperty("hibernate.connection.password");
+        if (!properties.containsKey("burst.database.migration.disabled")) {
+            String user = properties.getProperty("hibernate.connection.user");
+            String url = properties.getProperty("hibernate.connection.url");
+            String password = properties.getProperty("hibernate.connection.password");
 
-        logger.info("Migrating database using: url: {}  user: {} password: ****", url, user);
-        migrateDatabase(url, user, password);
+            logger.info("Migrating database using: url: {}  user: {} password: ****", url, user);
+            migrateDatabase(url, user, password);
+        }
 
         entityManagerFactory = Persistence.createEntityManagerFactory("ox.softeng.burst", properties);
 
@@ -185,6 +187,7 @@ public class BurstService {
 
                     Properties properties = new Properties();
                     properties.load(new FileInputStream(line.getOptionValue('c')));
+                    properties.putAll(System.getProperties());
 
                     logger.info("Starting burst service\n{}", version());
 
