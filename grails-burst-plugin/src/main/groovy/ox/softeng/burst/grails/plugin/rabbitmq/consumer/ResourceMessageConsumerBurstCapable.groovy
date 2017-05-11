@@ -287,6 +287,10 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
         } catch (ValidationException validationException) {
             handleErrors(Utils.extractErrorsFromException(validationException), 'BURST13', messageId, messageContext)
             return UNPROCESSABLE_ENTITY
+        } catch (grails.validation.ValidationException validationException) {
+            handleErrors(validationException.errors, 'VAL03', messageId, messageContext,
+                         extractRelevantMetadataFromGeneratedInstance(instance as R))
+            return UNPROCESSABLE_ENTITY
         } catch (RuntimeException exception) {
             BurstException burstException = new BurstException('BURST10', 'Failed to save resource', exception)
             handleException(burstException, messageId, messageContext, extractRelevantMetadataFromGeneratedInstance(instance as R))
