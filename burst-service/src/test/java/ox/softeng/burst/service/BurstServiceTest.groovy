@@ -16,7 +16,6 @@ import javax.persistence.EntityManagerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.OffsetDateTime
 
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertTrue
@@ -54,12 +53,8 @@ class BurstServiceTest extends Specification {
         List<Subscription> subscriptions = []
         users.each {
             Subscription s = new Subscription(it, FrequencyEnum.IMMEDIATE, SeverityEnum.INFORMATIONAL, 'topic 1')
-            s.lastScheduledRun = OffsetDateTime.now().minusMonths(1)
-            s.nextScheduledRun = OffsetDateTime.now().minusMonths(1)
             subscriptions += Subscription.findOrCreate(emf, s)
             Subscription s2 = new Subscription(it, FrequencyEnum.IMMEDIATE, SeverityEnum.DEBUG, 'topic 2')
-            s2.lastScheduledRun = OffsetDateTime.now().minusMonths(1)
-            s2.nextScheduledRun = OffsetDateTime.now().minusMonths(1)
             subscriptions += Subscription.findOrCreate(emf, s2)
         }
         Subscription.saveAll(emf, subscriptions)
