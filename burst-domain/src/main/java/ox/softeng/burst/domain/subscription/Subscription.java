@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
                                           " and s.nextScheduledRun < :dateNow "),
                       @NamedQuery(name = "subscription.uninitialised",
                                   query = "select s from Subscription s" +
+                                          " join fetch s.frequency f" +
                                           " where s.nextScheduledRun is null" +
                                           " or s.lastScheduledRun is null "),
                       @NamedQuery(name = "subscription.find_by_user_and_topics",
@@ -108,8 +109,6 @@ public class Subscription extends DomainClass implements Serializable {
         this.frequency = frequency;
         this.severity = severity;
         this.topicsString = topics;
-
-        calculateNextScheduledRun(1L);
     }
 
     public Subscription() {
@@ -203,8 +202,8 @@ public class Subscription extends DomainClass implements Serializable {
         return Arrays.stream(topicsString.split(",")).map(String::trim).collect(Collectors.toSet());
     }
 
-    public void setTopics(List<String> topics) {
-        setTopics(new HashSet<>(topics));
+    public void setTopics(Set<String> topics) {
+        this.topicsString = topics.stream().map(String::trim).collect(Collectors.joining(","));
     }
 
     public String getTopicsString() {
@@ -219,8 +218,8 @@ public class Subscription extends DomainClass implements Serializable {
         return !getTopics().isEmpty();
     }
 
-    public void setTopics(Set<String> topics) {
-        this.topicsString = topics.stream().map(String::trim).collect(Collectors.joining(","));
+    public void setTopics(List<String> topics) {
+        setTopics(new HashSet<>(topics));
     }
 
     public static List<Subscription> findDueSubscriptions(EntityManagerFactory entityManagerFactory, OffsetDateTime now) {
