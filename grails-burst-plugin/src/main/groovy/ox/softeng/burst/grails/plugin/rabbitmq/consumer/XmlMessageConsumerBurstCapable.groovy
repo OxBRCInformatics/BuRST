@@ -215,7 +215,7 @@ import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE
 /**
  * @since 18/02/2016
  */
-trait XmlMessageConsumerBurstCapable extends MessageConsumerBurstCapable {
+trait XmlMessageConsumerBurstCapable extends MessageConsumerBurstCapable implements XmlMessageConsumerHandler {
 
     List<MimeType> getContentTypes() {
         [MimeType.XML, MimeType.TEXT_XML]
