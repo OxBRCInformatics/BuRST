@@ -176,3 +176,11 @@ hs_err_pid*
 .shelf/
 reports/
 logs/
+
+# Ignore all license reports
+dependency-license.html
+license-dependency.html
+
+# Dont ignore the service license reports
+!burst-service/license-report/dependency-license.html
+!burst-service/license-report/license-dependency.html

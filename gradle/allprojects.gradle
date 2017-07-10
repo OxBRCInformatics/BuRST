@@ -13,6 +13,9 @@ allprojects {
             excludeDirs += file('.classpath')
             excludeDirs += file('.project')
             excludeDirs += file('.settings')
+            excludeDirs += file('dataSources')
+            excludeDirs += file('.ideaDataSources')
+            excludeDirs += file('reports')
 
             sourceDirs += file('rabbit-consumers')
             sourceDirs += file('rabbit-converters')
