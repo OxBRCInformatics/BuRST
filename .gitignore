@@ -156,7 +156,9 @@ build/
 gradle-app.setting
 
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!**/gradle-wrapper.jar
+!gradle-wrapper.jar
+!grails-wrapper.jar
+
 ### Java template
 *.class
 
@@ -174,3 +176,11 @@ hs_err_pid*
 .shelf/
 reports/
 logs/
+
+# Ignore all license reports
+dependency-license.html
+license-dependency.html
+
+# Dont ignore the service license reports
+!burst-service/license-report/dependency-license.html
+!burst-service/license-report/license-dependency.html

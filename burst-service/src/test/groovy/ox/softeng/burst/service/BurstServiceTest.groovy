@@ -2,13 +2,13 @@ package ox.softeng.burst.service
 
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
-import org.junit.Ignore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import ox.softeng.burst.domain.subscription.Subscription
 import ox.softeng.burst.domain.subscription.User
 import ox.softeng.burst.util.FrequencyEnum
 import ox.softeng.burst.util.SeverityEnum
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -68,7 +68,7 @@ class BurstServiceTest extends Specification {
         assertEquals 'Subscriptions loaded', 400, Subscription.count(emf, Subscription)
     }
 
-    @Ignore
+    @Ignore('This is only used to manually flood the system, it does not have an outcome')
     void 'flood system with messages'() {
         given: 'service runs'
         service.startService()

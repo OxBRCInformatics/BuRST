@@ -39,7 +39,7 @@ subprojects {
         }
     }
 
-    apply plugin: 'java'
+    apply plugin: 'groovy'
     apply plugin: 'jacoco'
     apply plugin: 'maven'
     apply plugin: 'com.jfrog.bintray'
@@ -90,7 +90,7 @@ subprojects {
         useJUnit()
         systemProperties(['file.encoding': 'UTF-8'])
         workingDir = rootDir
-        maxParallelForks = 20
+        ignoreFailures = true
         afterSuite {td, tr ->
             if (!(td.parent)) {
                 rootProject.unitTestFailures = rootProject.unitTestFailures + tr.failedTestCount

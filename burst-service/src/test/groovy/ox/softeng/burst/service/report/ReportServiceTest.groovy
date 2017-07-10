@@ -3,12 +3,18 @@ package ox.softeng.burst.service.report
 import ox.softeng.burst.domain.report.Message
 import ox.softeng.burst.domain.subscription.User
 import ox.softeng.burst.util.SeverityEnum
+import spock.lang.Shared
 import spock.lang.Specification
 
 import javax.persistence.EntityManagerFactory
 import javax.persistence.Persistence
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.time.OffsetDateTime
 import java.util.concurrent.Executors
+
+import static org.junit.Assert.assertTrue
 
 /**
  * @since 08/05/2016
@@ -19,9 +25,19 @@ class ReportServiceTest extends Specification {
     Message message, message2, message3
     User user
 
+    @Shared
+    Properties properties
+
+    def setupSpec() {
+        properties = new Properties()
+        Path propFile = Paths.get('burst-service/src/test/resources/config.properties')
+        assertTrue "Properties file must exist: ${propFile.toAbsolutePath()}", Files.exists(propFile)
+        properties.load(new FileInputStream(propFile.toFile()))
+    }
+
     def setup() {
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("ox.softeng.burst", properties);
-        service = new ReportService(entityManagerFactory, Executors.newCachedThreadPool(), new Properties(), null, OffsetDateTime.now(), 1)
+        service = new ReportService(entityManagerFactory, Executors.newCachedThreadPool(), properties, null, OffsetDateTime.now(), 1)
         message = new Message('test', 'test message', SeverityEnum.ALERT,
                               OffsetDateTime.now(), null)
         message2 = new Message('test', 'test message2', SeverityEnum.ALERT,
