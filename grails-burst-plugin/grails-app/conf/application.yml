@@ -1,20 +1,78 @@
 grails:
-    profile: web-plugin
+    profile: rest-api-plugin
     codegen:
         defaultPackage: ox.softeng.burst.grails.plugin
     spring:
         transactionManagement:
             proxies: false
+    gorm:
+        # Whether to autowire entities.
+        # Disabled by default for performance reasons.
+        autowire: false
+        reactor:
+            # Whether to translate GORM events into Reactor events
+            # Disabled by default for performance reasons
+            events: false
+    json.legacy.builder: false
+---
 info:
     app:
         name: '@info.app.name@'
         version: '@info.app.version@'
         grailsVersion: '@info.app.grailsVersion@'
 spring:
-
+    main:
+        banner-mode: "off"
     groovy:
         template:
             check-template-location: false
+    jpa.hibernate.ddl-auto: validate
+
+# Spring Actuator Endpoints are Disabled by Default
+endpoints:
+    enabled: false
+    jmx:
+        enabled: true
+        unique-names: true
+---
+grails:
+    mime:
+        disable:
+            accept:
+                header:
+                    userAgents:
+                        - Gecko
+                        - WebKit
+                        - Presto
+                        - Trident
+        types:
+            json:
+              - application/json
+              - text/json
+            hal:
+              - application/hal+json
+              - application/hal+xml
+            xml:
+              - text/xml
+              - application/xml
+            atom: application/atom+xml
+            css: text/css
+            csv: text/csv
+            js: text/javascript
+            rss: application/rss+xml
+            text: text/plain
+            all: '*/*'
+    urlmapping:
+        cache:
+            maxsize: 1000
+    controllers:
+        defaultScope: singleton
+    converters:
+        encoding: UTF-8
+        json.default.deep: true
+        xml.default.deep: true
+    gorm:
+        failOnError: true
 ---
 rabbitmq:
     connections:
