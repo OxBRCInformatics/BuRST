@@ -209,7 +209,7 @@ import ox.softeng.burst.grails.plugin.rabbitmq.databinding.StringXmlDataBindingS
 class BurstGrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "3.1.14 > *"
+    def grailsVersion = "3.2.11 > *"
     // resources that are excluded from plugin packaging
     def pluginExcludes = [
             "grails-app/views/error.gsp",
@@ -251,8 +251,11 @@ Provides the following classes which can be extended, each will produce BuRST me
     // Online location of the plugin's browseable source code.
     def scm = [url: "https://github.com/olliefreeman/BuRST"]
 
-    def dependsOn = [core       : grailsVersion,
-                     dataBinding: grailsVersion]
+    def dependsOn = [core          : grailsVersion,
+                     dataBinding   : grailsVersion,
+                     rabbitmqNative: '3.3.5 > *']
+
+    def loadAfter = ['dataBinding', 'rabbitmqNative']
 
     Closure doWithSpring() {
         {->
