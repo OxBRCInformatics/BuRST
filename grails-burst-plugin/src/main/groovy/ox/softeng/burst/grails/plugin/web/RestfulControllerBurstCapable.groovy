@@ -235,6 +235,19 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
      */
     @Transactional
     def save() {
+        burstSave()
+    }
+
+    /**
+     * Updates a resource for the given id
+     * @param id
+     */
+    @Transactional
+    def update() {
+        burstUpdate()
+    }
+
+    def burstSave() {
         if (handleReadOnly()) {
             return
         }
@@ -243,6 +256,7 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         // Binding failed so we have nothing to extract for metadata
         if (instance instanceof Errors) {
             handleNoIdErrors(instance, 'VAL03', getTopics(), [:])
+            transactionStatus.setRollbackOnly()
             respond instance, view: 'create'
             return
         }
@@ -275,17 +289,12 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
                 response.addHeader(HttpHeaders.LOCATION,
                                    grailsLinkGenerator.link(resource: this.controllerName, action: 'show', id: instance.id, absolute: true,
                                                             namespace: hasProperty('namespace') ? this.namespace : null))
-                respond instance, [status: CREATED]
+                respond instance, [status: CREATED, view: 'show']
             }
         }
     }
 
-    /**
-     * Updates a resource for the given id
-     * @param id
-     */
-    @Transactional
-    def update() {
+    def burstUpdate() {
         if (handleReadOnly()) {
             return
         }
