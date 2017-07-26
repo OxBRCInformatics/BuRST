@@ -47,6 +47,8 @@ public class User extends DomainClass implements Serializable {
     @Column(name = "last_name")
     protected String lastName;
     protected String organisation;
+    @Column(name = "endpoint_url")
+    protected String endpointUrl;
 
     public User(String firstName, String lastName, String emailAddress, String organisation) {
         this.firstName = firstName;
@@ -94,6 +96,10 @@ public class User extends DomainClass implements Serializable {
     public void setOrganisation(String organisation) {
         this.organisation = organisation;
     }
+
+    public String getEndpointUrl() { return endpointUrl; }
+
+    public void setEndpointUrl(String endpointUrl) { this.endpointUrl = endpointUrl; }
 
     public static User findOrCreate(EntityManagerFactory entityManagerFactory, User user) {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
