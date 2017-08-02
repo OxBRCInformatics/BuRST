@@ -198,6 +198,11 @@ public class ReportService implements Runnable {
         return emailSubject.toString();
     }
 
+    protected String generateMessageContents(Map<SeverityEnum, List<Message>> emailContents, User user) {
+        // message content is the same for http and email for now
+        return generateEmailContents(emailContents, user);
+    }
+
     private List<Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime, Severity severity) {
         List<Message> matchedMessages = Message.findAllMessagesBySeverityBetweenTime(entityManagerFactory, severity,
                                                                                      subscription.getLastScheduledRun(), runTime);
@@ -255,7 +260,7 @@ public class ReportService implements Runnable {
 
     private boolean sendHttpRequest(User user, Map<SeverityEnum, List<Message>> contentsMessages) {
         if (contentsMessages.isEmpty() && httpDisabled) return true;
-        String content = generateEmailContents(contentsMessages, user);
+        String content = generateMessageContents(contentsMessages, user);
         HttpService httpService = new HttpService(user.getEndpointUrl(), content);
         logger.debug("{} - Sending an {} HTTP request to {}", subscription.getId(), httpTransmission, user.getEndpointUrl());
         switch (httpTransmission) {

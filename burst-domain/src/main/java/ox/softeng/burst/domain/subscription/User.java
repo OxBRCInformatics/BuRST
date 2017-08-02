@@ -57,6 +57,14 @@ public class User extends DomainClass implements Serializable {
         this.organisation = organisation;
     }
 
+    public User(String firstName, String lastName, String emailAddress, String organisation, String endpointUrl) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.emailAddress = emailAddress;
+        this.organisation = organisation;
+        this.endpointUrl = endpointUrl;
+    }
+
     public User() {
 
     }
