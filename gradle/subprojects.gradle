@@ -15,7 +15,7 @@ subprojects {
     ]
 
     // Add application capability
-    if(project.hasProperty('mainClass')){
+    if (project.hasProperty('mainClass')) {
         apply plugin: 'application'
 
         manifestAttrs.'Main-Class' = mainClass
@@ -28,12 +28,12 @@ subprojects {
             applicationDefaultJvmArgs += ((String) defaultApplicationJvmArgs).split(',')
 
         installDist {
-            if(System.env.FILE_RECEIVER_INSTALL_DIR){
+            if (System.env.FILE_RECEIVER_INSTALL_DIR) {
                 destinationDir = file(System.env.BURST_INSTALL_DIR)
             }
 
-            outputs.upToDateWhen{ false}
-            doLast{
+            outputs.upToDateWhen {false}
+            doLast {
                 logger.quiet "Installed application to {}", destinationDir
             }
         }
@@ -44,6 +44,7 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'com.jfrog.bintray'
     apply plugin: "com.github.hierynomus.license"
+    if (!name.startsWith('grails')) apply plugin: 'maven-publish'
 
     jacoco {
         toolVersion = '+'
@@ -57,8 +58,8 @@ subprojects {
 
     license {
         header rootProject.file('LICENSE')
-        includes(["**/*.java","**/*.groovy"])
-        excludes(['**/*Test*.java', '**/*Test*.groovy', '**/*Spec.groovy','*logback*.groovy', '**/resources.groovy'])
+        includes(["**/*.java", "**/*.groovy"])
+        excludes(['**/*Test*.java', '**/*Test*.groovy', '**/*Spec.groovy', '*logback*.groovy', '**/resources.groovy'])
     }
 
     rootProject.tasks.reportOnLicenses.dependsOn tasks.downloadLicenses
@@ -160,6 +161,29 @@ subprojects {
         archives javadocJar
     }
 
+    if (!name.startsWith('grails')) {
+        publishing {
+
+            repositories {
+                maven {
+                    credentials {
+                        def u = project.hasProperty("artifactory_user") ? project.artifactory_user : ''
+                        def p = project.hasProperty('artifactory_apiKey') ? project.artifactory_apiKey : ''
+                        username = u
+                        password = p
+                    }
+                    url "https://jenkins.cs.ox.ac.uk/artifactory/libs-snapshot-local"
+                }
+            }
+            publications {
+                all(MavenPublication) {
+                    artifact sourcesJar
+                    artifact javadocJar
+                    artifact jar
+                }
+            }
+        }
+    }
 
     bintray {
         user = System.getenv('BINTRAY_USER')

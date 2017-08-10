@@ -10,10 +10,10 @@ buildscript {
     }
 }
 
-apply plugin:"org.grails.grails-plugin"
-apply plugin:"org.grails.grails-plugin-publish"
+apply plugin: "org.grails.grails-plugin"
+apply plugin: "org.grails.grails-plugin-publish"
 apply plugin: "org.grails.plugins.views-json"
-apply plugin:"asset-pipeline"
+apply plugin: "asset-pipeline"
 
 ext {
     grailsVersion = project.grailsVersion
@@ -26,7 +26,7 @@ license {
 
 repositories {
     mavenLocal()
-    maven { url "https://repo.grails.org/grails/core" }
+    maven {url "https://repo.grails.org/grails/core"}
 }
 
 dependencies {
@@ -94,8 +94,10 @@ javadocJar {
 }
 
 grailsPublish {
+
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
+
     userOrg = 'oxbrcinformatics'
     repo = 'maven'
 
@@ -104,5 +106,17 @@ grailsPublish {
     }
     githubSlug = 'OxBRCInformatics/BuRST'
     title = "Grails Burst Plugin"
-    developers = [olliefreeman:"Oliver Freeman"]
+    developers = [olliefreeman: "Oliver Freeman"]
+}
+
+publishing {
+    repositories {
+        maven {
+            credentials {
+                username = project.hasProperty("artifactory_user") ? project.artifactory_user : ''
+                password = project.hasProperty('artifactory_apiKey') ? project.artifactory_apiKey : ''
+            }
+            url "https://jenkins.cs.ox.ac.uk/artifactory/libs-snapshot-local"
+        }
+    }
 }
