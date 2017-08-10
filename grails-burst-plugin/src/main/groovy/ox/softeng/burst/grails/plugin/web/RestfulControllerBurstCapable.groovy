@@ -247,6 +247,7 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         burstUpdate()
     }
 
+    @Transactional
     def burstSave() {
         if (handleReadOnly()) {
             return
@@ -294,6 +295,7 @@ abstract class RestfulControllerBurstCapable<T> extends RestfulController<T> imp
         }
     }
 
+    @Transactional
     def burstUpdate() {
         if (handleReadOnly()) {
             return
