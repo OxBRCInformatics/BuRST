@@ -11,7 +11,7 @@ class SubscriptionTest extends Specification {
     User user
 
     def setup() {
-        user = new User('test', 'user', 'tu@test.com', 'no-org')
+        user = new User('test', 'user', 'tu@test.com', 'no-org', "http://localhost:8080/endpoint")
     }
 
     void 'test topics'() {

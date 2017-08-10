@@ -23,6 +23,7 @@
  */
 package ox.softeng.burst.service.report;
 
+import org.apache.commons.lang3.StringUtils;
 import ox.softeng.burst.domain.report.Message;
 import ox.softeng.burst.domain.subscription.Severity;
 import ox.softeng.burst.domain.subscription.Subscription;
@@ -50,22 +51,30 @@ public class ReportService implements Runnable {
     private final OffsetDateTime currentTime;
     private final boolean emailDisabled;
     private final ExecutorService emailServiceExecutor;
+    private final ExecutorService httpServiceExecutor;
     private final EntityManagerFactory entityManagerFactory;
     private final Long immediateFrequency;
     private final Properties properties;
     private final Subscription subscription;
     private String emailTransmission;
+    private final boolean httpDisabled;
+    private String httpTransmission;
 
-    ReportService(EntityManagerFactory entityManagerFactory, ExecutorService emailServiceExecutor, Properties properties, Subscription subscription,
+
+    ReportService(EntityManagerFactory entityManagerFactory, ExecutorService emailServiceExecutor,
+                  ExecutorService httpServiceExecutor, Properties properties, Subscription subscription,
                   OffsetDateTime currentTime, Long immediateFrequency) {
         this.subscription = subscription;
         this.currentTime = currentTime;
         this.entityManagerFactory = entityManagerFactory;
         this.immediateFrequency = immediateFrequency;
         this.emailServiceExecutor = emailServiceExecutor;
+        this.httpServiceExecutor = httpServiceExecutor;
         this.properties = properties;
         this.emailDisabled = properties.containsKey("report.email.disabled");
         this.emailTransmission = properties.getProperty("report.email.transmission");
+        this.httpDisabled = properties.containsKey("report.http.disabled");
+        this.httpTransmission = properties.getProperty("report.http.transmission");
     }
 
     @Override
@@ -82,10 +91,16 @@ public class ReportService implements Runnable {
                 logger.debug("{} - Subscription has {} matching messages", subscription.getId(), matchedMessages.size());
                 success = emailDisabled;
 
-                if (!emailDisabled) {
+                if (!emailDisabled && StringUtils.isNotEmpty(user.getEmailAddress())) {
                     Map<SeverityEnum, List<Message>> emailContentsMessages = getEmailContentsMessages(matchedMessages);
                     logger.trace("{} - Generating email for {} messages", subscription.getId(), getNumberOfMessages(emailContentsMessages));
                     success = sendMessagesToUser(user, emailContentsMessages);
+                }
+
+                if (!httpDisabled && StringUtils.isNotEmpty(user.getEndpointUrl())) {
+                    Map<SeverityEnum, List<Message>> contentsMessages = getEmailContentsMessages(matchedMessages);
+                    logger.info("{} - Sending HTTP request for {} messages", subscription.getId(), getNumberOfMessages(contentsMessages));
+                    success = sendHttpRequest(user, contentsMessages);
                 }
             }
 
@@ -183,6 +198,11 @@ public class ReportService implements Runnable {
         return emailSubject.toString();
     }
 
+    protected String generateMessageContents(Map<SeverityEnum, List<Message>> emailContents, User user) {
+        // message content is the same for http and email for now
+        return generateEmailContents(emailContents, user);
+    }
+
     private List<Message> findMessagesForSubscription(Subscription subscription, OffsetDateTime runTime, Severity severity) {
         List<Message> matchedMessages = Message.findAllMessagesBySeverityBetweenTime(entityManagerFactory, severity,
                                                                                      subscription.getLastScheduledRun(), runTime);
@@ -236,6 +256,21 @@ public class ReportService implements Runnable {
             logger.error("{} - Could not send email as email addresses could not be resolved", subscription.getId());
         }
         return false;
+    }
+
+    private boolean sendHttpRequest(User user, Map<SeverityEnum, List<Message>> contentsMessages) {
+        if (contentsMessages.isEmpty() && httpDisabled) return true;
+        String content = generateMessageContents(contentsMessages, user);
+        HttpService httpService = new HttpService(user.getEndpointUrl(), content);
+        logger.debug("{} - Sending an {} HTTP request to {}", subscription.getId(), httpTransmission, user.getEndpointUrl());
+        switch (httpTransmission) {
+            case "synchronous":
+                httpService.run();
+                return httpService.isRequestSent();
+            default:
+                httpServiceExecutor.submit(httpService);
+                return true;
+        }
     }
 
     private void updateSubscription(Subscription subscription, OffsetDateTime lastRun) {

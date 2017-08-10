@@ -48,6 +48,7 @@ public class ReportScheduler implements Runnable {
     private final Properties properties;
     private final ExecutorService reportServiceExecutor;
     private ExecutorService emailServiceExecutor;
+    private ExecutorService httpServiceExecutor;
 
     public ReportScheduler(EntityManagerFactory emf, Properties properties) throws IllegalStateException {
         entityManagerFactory = emf;
@@ -106,6 +107,23 @@ public class ReportScheduler implements Runnable {
             properties.setProperty("report.email.transmission", "disabled");
         }
 
+        boolean httpDisabled = properties.containsKey("report.http.disabled");
+
+        // Only setup http properties if http is enabled
+        if (!httpDisabled) {
+            String httpTransmission = properties.getProperty("report.http.transmission", "asynchronous");
+            properties.setProperty("report.http.transmission", httpTransmission);
+
+            switch (httpTransmission) {
+                case "synchronous":
+                    logger.info("HTTP requests will be sent synchronously, so the reporting services will wait and know of the result of requests being sent");
+                    break;
+                default:
+                    logger.warn("HTTP requests will be sent asnychronously, so the reporting services will not know of the result of requests being sent");
+                    httpServiceExecutor = Executors.newCachedThreadPool(new NamedThreadFactory("http"));
+            }
+        }
+
         Integer reportServiceThreadCount = Utils.convertToInteger("report.service.thread.size",
                                                                   properties.getProperty("report.service.thread.size"), 50);
 
@@ -126,8 +144,8 @@ public class ReportScheduler implements Runnable {
                 logger.info("Generating reports for {} subscriptions", dueSubscriptions.size());
 
                 for (Subscription subscription : dueSubscriptions) {
-                    ReportService reportService = new ReportService(entityManagerFactory, emailServiceExecutor, properties,
-                                                                    subscription, now, immediateFrequency);
+                    ReportService reportService = new ReportService(entityManagerFactory, emailServiceExecutor,
+                            httpServiceExecutor, properties, subscription, now, immediateFrequency);
                     futures.add(reportServiceExecutor.submit(reportService));
                 }
                 logger.debug("Reporting services generated");
