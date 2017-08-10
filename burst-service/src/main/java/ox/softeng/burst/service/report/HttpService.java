@@ -130,18 +130,61 @@
  * Oxford University Innovation Limited to negotiate a licence.
  * Contact details are enquiries@innovation.ox.ac.uk quoting reference 14422.
  */
-package ox.softeng.burst.util;
+package ox.softeng.burst.service.report;
 
-// Taken from:
-// https://logging.apache.org/log4j/2.0/log4j-core/apidocs/org/apache/logging/log4j/core/net/Severity.html
+import org.apache.http.StatusLine;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.apache.commons.lang3.text.WordUtils;
+/**
+ * @since 18/07/2017
+ */
+public class HttpService implements Runnable {
 
-public enum SeverityEnum {
-    DEBUG, INFORMATIONAL, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY;
+    private static final Logger logger = LoggerFactory.getLogger(HttpService.class);
+    private final String content;
+    private final String endpoint;
+    private boolean requestSent;
+
+    HttpService(String endpoint, String content) {
+        this.endpoint = endpoint;
+        this.content = content;
+        this.requestSent = false;
+    }
 
     @Override
-    public String toString() {
-        return WordUtils.capitalizeFully(name());
+    public void run() {
+        try {
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HttpPost httpPost = new HttpPost(this.endpoint);
+            StringEntity body = new StringEntity(this.content);
+            httpPost.setEntity(body);
+            ResponseHandler<Boolean> responseHandler = response -> {
+                StatusLine statusLine = response.getStatusLine();
+                int statusCode = statusLine.getStatusCode();
+                if (statusCode >= 200 && statusCode < 300) {
+                    this.requestSent = true;
+                    return true;
+                } else {
+                    logger.error("Error HTTP code '{}' received calling endpoint: '{}'", statusLine, this.endpoint);
+                    this.requestSent = false;
+                    return false;
+                }
+            };
+            httpClient.execute(httpPost, responseHandler);
+        } catch (Exception e) {
+            logger.error("Error whilst attempting to send http request: " + e.getMessage());
+            this.requestSent = false;
+        }
+
+    }
+
+    boolean isRequestSent() {
+        return requestSent;
     }
 }

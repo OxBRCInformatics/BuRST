@@ -48,6 +48,7 @@ class BurstServiceTest extends Specification {
         (1..200).each {
             users += User.findOrCreate(emf, new User('Test', "User $it", "test.user.${it}@burst.test.com", 'TEST'))
         }
+        users += User.findOrCreate(emf, new User('Test', "User 201", "test.user.201@burst.test.com", 'TEST', "http://localhost:8080/endpoint"))
         User.saveAll(emf, users)
 
         List<Subscription> subscriptions = []
@@ -62,10 +63,10 @@ class BurstServiceTest extends Specification {
 
     void 'simple test to check everything setup'() {
         expect: 'users in place'
-        assertEquals 'Users loaded', 200, User.count(emf, User)
+        assertEquals 'Users loaded', 201, User.count(emf, User)
 
         and: 'subscriptions to be in place'
-        assertEquals 'Subscriptions loaded', 400, Subscription.count(emf, Subscription)
+        assertEquals 'Subscriptions loaded', 402, Subscription.count(emf, Subscription)
     }
 
     @Ignore('This is only used to manually flood the system, it does not have an outcome')
