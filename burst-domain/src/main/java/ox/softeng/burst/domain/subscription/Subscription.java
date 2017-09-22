@@ -357,24 +357,52 @@ public class Subscription extends DomainClass implements Serializable {
         return subscriptions.get(0);
     }
 
+    /**
+     * Determines subscriptions that have not yet been initialised (scheduled) and initialises
+     * them.
+     * 
+     * @param entityManagerFactory {@link EntityManagerFactory}
+     * @param immediateFrequency used to calculate the next scheduled run of a subscription that
+     * 		  has not been initialised (scheduled).
+     */
     public static void initialiseSubscriptions(EntityManagerFactory entityManagerFactory, Long immediateFrequency) {
-        logger.trace("Checking for subscriptions to initialise");
-        EntityManager badSubsEm = entityManagerFactory.createEntityManager();
-        TypedQuery<Subscription> badSubsQuery = badSubsEm.createNamedQuery("subscription.uninitialised", Subscription.class);
-        List<Subscription> uninitialisedSubscriptions = badSubsQuery.getResultList();
-        badSubsEm.close();
-        if (uninitialisedSubscriptions.size() > 0) {
-            logger.debug("Initialising {} subscriptions", uninitialisedSubscriptions.size());
-            for (Subscription s : uninitialisedSubscriptions) {
-                logger.trace("Scheduling new run for {} subscription {}", s.getSubscriber().emailAddress, s.getId());
-                EntityManager schedEm = entityManagerFactory.createEntityManager();
-                schedEm.getTransaction().begin();
-                s.calculateNextScheduledRun(immediateFrequency);
-                schedEm.merge(s);
-                schedEm.getTransaction().commit();
-                schedEm.close();
-            }
+        logger.debug("Checking for subscriptions to initialise...");
+        
+        EntityManager entityManager = null;
+
+        try
+        {
+          entityManager = entityManagerFactory.createEntityManager();
+          
+          TypedQuery<Subscription> subsToInitialiseQuery = entityManager.createNamedQuery("subscription.uninitialised", Subscription.class);
+          List<Subscription> uninitialisedSubscriptions = subsToInitialiseQuery.getResultList();
+          
+
+          if (uninitialisedSubscriptions.size() > 0) 
+          {
+              logger.debug("Initialising {} subscriptions", uninitialisedSubscriptions.size());
+              
+              for (Subscription s : uninitialisedSubscriptions) 
+              {
+                  logger.debug("Scheduling new run for {} subscription {}", s.getSubscriber().emailAddress, s.getId());
+
+                  entityManager.getTransaction().begin();
+                  s.calculateNextScheduledRun(immediateFrequency);
+                  entityManager.merge(s);
+                  entityManager.getTransaction().commit(); 
+              }
+          }
+          
+          logger.trace("Subscriptions all initialised");
         }
-        logger.trace("Subscriptions all initialised");
+        catch (Exception ex)
+        {
+          logger.info("Failed to process unintialised subscriptions: " + ex.getStackTrace());
+        }
+        finally
+        {
+          entityManager.close();
+        }
+
     }
 }
