@@ -5,7 +5,7 @@ buildscript {
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath "org.grails.plugins:views-gradle:1.1.6"
+        classpath "org.grails.plugins:views-gradle:1.2.8"
         classpath "com.bertramlabs.plugins:asset-pipeline-gradle:$assetPipelineVersion"
     }
 }
@@ -26,7 +26,8 @@ license {
 
 repositories {
     mavenLocal()
-    maven { url "https://repo.grails.org/grails/core" }
+    maven {url 'https://jenkins.cs.ox.ac.uk/artifactory/libs-release'}
+    maven {url 'https://jenkins.cs.ox.ac.uk/artifactory/libs-snapshot'}
 }
 
 dependencies {
@@ -42,10 +43,11 @@ dependencies {
     compile "org.grails:grails-plugin-services"
     compile "org.grails:grails-plugin-datasource"
     compile "org.grails:grails-plugin-databinding"
-    compile "org.grails:grails-plugin-async"
     compile "org.grails:grails-web-boot"
     compile "org.grails:grails-logging"
     compile "org.grails.plugins:cache"
+    compile "org.grails.plugins:async"
+    compile "org.grails:grails-plugin-async"
     compile "org.grails.plugins:hibernate5"
     compile "org.hibernate:hibernate-core:$hibernateVersion"
     compile "org.hibernate:hibernate-ehcache:$hibernateVersion"
@@ -56,10 +58,14 @@ dependencies {
     provided "org.grails:grails-plugin-services"
     provided "org.grails:grails-plugin-domain-class"
     provided "org.springframework.boot:spring-boot-starter-tomcat"
+    runtime "org.glassfish.web:el-impl:2.1.2-b03"
     runtime "com.h2database:h2"
+    runtime "org.apache.tomcat:tomcat-jdbc"
+    testCompile "org.grails:grails-gorm-testing-support"
     testCompile "org.grails:grails-plugin-testing"
-    testCompile "org.grails.plugins:geb"
     testCompile "org.grails:grails-datastore-rest-client"
+    testCompile "org.grails:grails-web-testing-support"
+    testCompile "org.grails.plugins:geb"
     testRuntime "org.seleniumhq.selenium:selenium-htmlunit-driver:2.47.1"
     testRuntime "net.sourceforge.htmlunit:htmlunit:2.18"
 }
@@ -67,6 +73,8 @@ dependencies {
 bootRun {
     jvmArgs('-Dspring.output.ansi.enabled=always')
     addResources = true
+    String springProfilesActive = 'spring.profiles.active'
+    systemProperty springProfilesActive, System.getProperty(springProfilesActive)
 }
 // enable if you wish to package this plugin as a standalone application
 bootRepackage.enabled = false

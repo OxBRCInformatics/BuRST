@@ -203,42 +203,41 @@
  */
 package ox.softeng.burst.grails.plugin
 
-import com.budjb.rabbitmq.converter.MessageConverter
+import com.budjb.rabbitmq.converter.*
 import groovy.util.slurpersupport.GPathResult
 import groovy.xml.XmlUtil
+import org.springframework.util.MimeType
 import org.xml.sax.SAXException
 
-
-class ApplicationXmlMessageConverter extends MessageConverter<GPathResult> {
+class ApplicationXmlMessageConverter implements ByteToObjectConverter, ObjectToByteConverter {
 
     BurstService burstService
 
-    @Override
-    String getContentType() {
-        "application/xml"
-    }
+    private static final MimeType mimeType = MimeType.valueOf('application/xml')
 
     @Override
-    boolean canConvertFrom() {
-        true
-    }
-
-    @Override
-    boolean canConvertTo() {
-        true
-    }
-
-    @Override
-    GPathResult convertTo(byte[] input) {
+    ByteToObjectResult convert(ByteToObjectInput input) {
+        GPathResult result
         try {
-            return new XmlSlurper().parseText(new String(input))
+            result = new XmlSlurper().parseText(new String(input.getBytes(), input.getCharset()))
         } catch (SAXException ignored) {
-            null
+            result = null
         }
+        new ByteToObjectResult(result)
     }
 
     @Override
-    byte[] convertFrom(GPathResult input) {
-        XmlUtil.serialize(input).bytes
+    ObjectToByteResult convert(ObjectToByteInput input) {
+        new ObjectToByteResult(XmlUtil.serialize(input.object as GPathResult).getBytes(input.charset), new MimeType(mimeType, input.getCharset()))
+    }
+
+    @Override
+    boolean supports(Class<?> type) {
+        GString.isAssignableFrom(type)
+    }
+
+    @Override
+    boolean supports(MimeType mimeType) {
+        return mimeType.isCompatibleWith(this.mimeType)
     }
 }

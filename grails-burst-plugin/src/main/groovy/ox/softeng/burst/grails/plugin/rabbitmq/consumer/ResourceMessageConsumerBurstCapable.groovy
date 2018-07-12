@@ -204,7 +204,7 @@
 package ox.softeng.burst.grails.plugin.rabbitmq.consumer
 
 import com.budjb.rabbitmq.consumer.MessageContext
-import grails.transaction.Transactional
+import grails.gorm.transactions.Transactional
 import org.grails.datastore.mapping.validation.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors

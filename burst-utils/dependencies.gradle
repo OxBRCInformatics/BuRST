@@ -1,4 +1,4 @@
 dependencies {
     compile group: 'com.rabbitmq', name: 'amqp-client', version: rabbitmqVersion
-    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'org.apache.commons:commons-lang3:3.7'
 }
