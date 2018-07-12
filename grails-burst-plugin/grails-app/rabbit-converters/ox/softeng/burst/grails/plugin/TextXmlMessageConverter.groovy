@@ -203,41 +203,47 @@
  */
 package ox.softeng.burst.grails.plugin
 
+import com.budjb.rabbitmq.converter.ByteToObjectConverter
+import com.budjb.rabbitmq.converter.ByteToObjectInput
+import com.budjb.rabbitmq.converter.ByteToObjectResult
 import com.budjb.rabbitmq.converter.MessageConverter
+import com.budjb.rabbitmq.converter.ObjectToByteConverter
+import com.budjb.rabbitmq.converter.ObjectToByteInput
+import com.budjb.rabbitmq.converter.ObjectToByteResult
 import groovy.util.slurpersupport.GPathResult
 import groovy.xml.XmlUtil
+import org.springframework.util.MimeType
 import org.xml.sax.SAXException
 
-class TextXmlMessageConverter extends MessageConverter<GPathResult> {
+    class TextXmlMessageConverter implements ByteToObjectConverter, ObjectToByteConverter {
 
-    BurstService burstService
+        BurstService burstService
 
-    @Override
-    String getContentType() {
-        "text/xml"
-    }
+        private static final MimeType mimeType = MimeType.valueOf('text/xml')
 
-    @Override
-    boolean canConvertFrom() {
-        true
-    }
-
-    @Override
-    boolean canConvertTo() {
-        true
-    }
-
-    @Override
-    GPathResult convertTo(byte[] input) {
-        try {
-            return new XmlSlurper().parseText(new String(input))
-        } catch (SAXException ignored) {
-            null
+        @Override
+        ByteToObjectResult convert(ByteToObjectInput input) {
+            GPathResult result
+            try {
+                result = new XmlSlurper().parseText(new String(input.getBytes(), input.getCharset()))
+            } catch (SAXException ignored) {
+                result = null
+            }
+            new ByteToObjectResult(result)
         }
-    }
 
-    @Override
-    byte[] convertFrom(GPathResult input) {
-        XmlUtil.serialize(input).bytes
-    }
+        @Override
+        ObjectToByteResult convert(ObjectToByteInput input) {
+            new ObjectToByteResult(XmlUtil.serialize(input.object as GPathResult).getBytes(input.charset), new MimeType(mimeType, input.getCharset()))
+        }
+
+        @Override
+        boolean supports(Class<?> type) {
+            GString.isAssignableFrom(type)
+        }
+
+        @Override
+        boolean supports(MimeType mimeType) {
+            return mimeType.isCompatibleWith(this.mimeType)
+        }
 }

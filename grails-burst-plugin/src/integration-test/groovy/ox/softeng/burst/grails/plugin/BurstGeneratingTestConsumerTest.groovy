@@ -3,7 +3,7 @@ package ox.softeng.burst.grails.plugin
 import com.budjb.rabbitmq.RabbitContext
 import com.budjb.rabbitmq.consumer.MessageContext
 import com.budjb.rabbitmq.publisher.RabbitMessagePublisher
-import grails.test.mixin.integration.Integration
+import grails.testing.mixin.integration.Integration
 import grails.transaction.Rollback
 import grails.util.Holders
 import grails.web.mime.MimeType
@@ -135,7 +135,7 @@ class BurstGeneratingTestConsumerTest extends Specification {
         sleep(2000)
 
         then: 'the consumer will get it and generate an error which is seen by the burst listening consumer'
-        1 * burstListeningConsumer.handleMessage({it.contains('BURST11')} as String, _ as MessageContext)
+        1 * burstListeningConsumer.handleMessage({it.contains('BURST08')} as String, _ as MessageContext)
         0 * _
     }
 

@@ -46,7 +46,7 @@ subprojects {
     apply plugin: "com.github.hierynomus.license"
 
     jacoco {
-        toolVersion = '+'
+        toolVersion = '0.8.1'
     }
 
     downloadLicenses {
@@ -67,9 +67,8 @@ subprojects {
 
     repositories {
         mavenLocal()
-        jcenter()
-        maven {url "http://dl.bintray.com/oxbrcinformatics/maven"}
-        maven {url "http://dl.bintray.com/olliefreeman/maven"}
+        maven {url 'https://jenkins.cs.ox.ac.uk/artifactory/libs-release'}
+        maven {url 'https://jenkins.cs.ox.ac.uk/artifactory/libs-snapshot'}
     }
 
     apply from: "$rootDir/dependencies.gradle"
