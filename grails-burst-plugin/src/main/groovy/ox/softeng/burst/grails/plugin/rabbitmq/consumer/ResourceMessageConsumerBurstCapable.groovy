@@ -204,7 +204,6 @@
 package ox.softeng.burst.grails.plugin.rabbitmq.consumer
 
 import com.budjb.rabbitmq.consumer.MessageContext
-import grails.gorm.transactions.Transactional
 import org.grails.datastore.mapping.validation.ValidationException
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
@@ -220,7 +219,6 @@ import static org.springframework.http.HttpStatus.*
 /**
  * @since 24/02/2016
  */
-@Transactional
 abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinder, MessageConsumerBurstCapable {
 
     abstract Map<String, String> extractRelevantMetadataFromGeneratedInstance(R instance)
@@ -263,7 +261,7 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
     def save(def object, String messageId, MessageContext messageContext) {
         logger.debug('{} - Saving new object with content-type "{}"', messageId,
                      messageContext.properties.contentType)
-        def instance = createResource object, messageId, messageContext
+        R instance = createResource object, messageId, messageContext
 
         // Binding failed so we have nothing to extract for metadata
         if (instance instanceof Errors) {
@@ -273,7 +271,8 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
 
         logger.debug('{} - Instance of type "{}" created', messageId, instance.class)
 
-        instance.validate()
+        validateResource(instance)
+
         // If errors here then object has data but does not pass validation constraints
         if (instance.hasErrors()) {
             handleErrors instance.errors as Errors, 'VAL02', messageId, messageContext,
@@ -302,7 +301,7 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
         instance
     }
 
-    def createResource(def objectToBind, String messageId, MessageContext context) {
+    R createResource(def objectToBind, String messageId, MessageContext context) {
         logger.debug('{} - Creating resource', messageId)
         R instance = getType().newInstance()
         def result = bindData instance, objectToBind, context
@@ -316,9 +315,8 @@ abstract class ResourceMessageConsumerBurstCapable<R> implements RabbitDataBinde
      * @param resource The resource to be saved
      * @return The saved resource or null if can't save it
      */
-    R saveResource(R resource) {
-        resource.save flush: true
-    }
+    abstract R saveResource(R resource)
+    abstract boolean validateResource(R resource)
 
     Class<R> getType() {
         ((ParameterizedType) this.class.genericSuperclass.find {it instanceof ParameterizedType}).actualTypeArguments[0] as Class
