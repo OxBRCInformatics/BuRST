@@ -236,4 +236,9 @@ class BurstValidationConsumer extends XmlResourceMessageConsumerBurstCapable<Tes
         if (resource.failSave) throw new HibernateException('Could not save', new JDBCException('Could not connect', new SQLException('Bad SQL')))
         resource.save flush: true
     }
+
+    @Override
+    boolean validateResource(Test resource) {
+        resource.validate()
+    }
 }
